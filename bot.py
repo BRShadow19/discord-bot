@@ -19,7 +19,8 @@ ytdl_format_options = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+    'source_address': '0.0.0.0', # bind to ipv4 since ipv6 addresses cause issues sometimes
+    'youtube_include_dash-manifest': False
 }
 
 ffmpeg_options = {
@@ -61,6 +62,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
+    self.isPlaying = False
+    self.currentTitle = ''
 
   @commands.command()
   async def join(self, ctx, *, channel: discord.VoiceChannel):
@@ -72,19 +75,38 @@ class Music(commands.Cog):
       await channel.connect()
     
   @commands.command()
-  async def stream(self, ctx, *, url):
+  async def play(self, ctx, *, url):
     async with ctx.typing():
       player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
       ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
     await ctx.send('Now playing: {}'.format(player.title))
+    self.currentTitle = player.title
 
   @commands.command()
   async def stop(self, ctx):
     """Stops and disconnects the bot from voice"""
-
+    await ctx.send('Stopped playing {}'.format(self.currentTitle))
     await ctx.voice_client.disconnect()
-  
-  @stream.before_invoke
+    
+
+  @commands.command()
+  async def pause(self, ctx):
+    ctx.voice_client.pause()
+    await ctx.send('The music is now paused.')
+
+  @commands.command()
+  async def resume(self, ctx):
+    ctx.voice_client.resume()
+    await ctx.send('Resuming the music!')
+
+  @commands.command()
+  async def isPaused(self, ctx):
+    if ctx.voice_client.is_paused():
+      await ctx.send('{} is currently paused.'.format(self.currentTitle))
+    else:
+      await ctx.send('No music is paused right now.')
+
+  @play.before_invoke
   async def ensure_voice(self, ctx):
     if ctx.voice_client is None:
       if ctx.author.voice:
