@@ -4,7 +4,7 @@ import os
 import youtube_dl
 from dotenv import load_dotenv
 from discord.ext import commands
-
+song_queue = []
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
 
@@ -36,7 +36,7 @@ token = os.environ.get('TOKEN')
 bot = commands.Bot(command_prefix=commands.when_mentioned_or("m!"),
                    description='Simple music bot')
 
-
+#OBJECTS
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
@@ -76,23 +76,40 @@ class Music(commands.Cog):
     
   @commands.command()
   async def play(self, ctx, *, url):
-    async with ctx.typing():
-      player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-      ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
-    await ctx.send('Now playing: {}'.format(player.title))
-    self.currentTitle = player.title
+      if ctx.voice_client.is_playing():
+        async with ctx.typing():
+          player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+          song_queue.append(player)
+          await ctx.send('up next: {}'.format(player.title))
+      else:
+        async with ctx.typing():
+          player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+          ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+          await ctx.send('Now playing: {}'.format(player.title))
+          self.currentTitle = player.title
+
 
   @commands.command()
   async def stop(self, ctx):
     """Stops and disconnects the bot from voice"""
-    await ctx.send('Stopped playing {}'.format(self.currentTitle))
-    await ctx.voice_client.disconnect()
+    if ctx.voice_client.is_playing() == False:
+      await ctx.send('No music to stop lol')
+    else:
+      ctx.voice_client.stop()
+      await ctx.send('Stopped playing {}'.format(self.currentTitle))
     
-
   @commands.command()
   async def pause(self, ctx):
     ctx.voice_client.pause()
     await ctx.send('The music is now paused.')
+
+  @commands.command()
+  async def leave(self, ctx):
+      if ctx.voice_client is not None:
+        await ctx.send('See ya next time')
+        await ctx.voice_client.disconnect()
+      else: 
+        await ctx.send('Bot is currently not in a voice channel')
 
   @commands.command()
   async def resume(self, ctx):
@@ -106,6 +123,37 @@ class Music(commands.Cog):
     else:
       await ctx.send('No music is paused right now.')
 
+  @commands.command()
+  async def commandList(self, ctx):
+    await ctx.send('Commands:'+
+    '\nm!join: Puts the bot in your voice channel'+
+    '\nm!play: plays music'+
+    '\nm!stop: stops playing music'+
+    '\nm!resume: resumes music'+
+    '\nm!leave: Bot leaves'+
+    '\nm!queue: see whats in the queue'+
+    '\nm!skip: skips current song')
+
+  @commands.command()
+  async def queue(self, ctx):
+    if len(song_queue) == 0:
+      await ctx.send('Nothing in the queue')
+    else:
+      await ctx.send('Heres whats in the Queue:')
+      x = 0
+      while x < len(song_queue):
+        await ctx.send(song_queue[x].title)
+        x+=1
+
+  @commands.command()
+  async def skip(self, ctx):
+    if len(song_queue) >= 1:
+      ctx.voice_client.stop()
+      ctx.voice_client.play(song_queue.pop(0))
+      await ctx.send('Now playing: {}'.format(self.currentTitle))
+    else:
+      await ctx.send('Nothing to skip lol')
+
   @play.before_invoke
   async def ensure_voice(self, ctx):
     if ctx.voice_client is None:
@@ -114,8 +162,6 @@ class Music(commands.Cog):
       else:
         await ctx.send("You are not connected to a voice channel.")
         raise commands.CommandError("Author not connected to a voice channel.")
-    elif ctx.voice_client.is_playing():
-      ctx.voice_client.stop()
 
 @bot.event
 async def on_ready():
@@ -123,4 +169,4 @@ async def on_ready():
     print('------')
 
 bot.add_cog(Music(bot))
-bot.run(token)
+bot.run('OTg0NDg5MDI4ODc3NDQzMTAz.GuVANQ.10dyuJDkCf_JfspdZ1K0SwkuPtIMdyJvRRoICs')
