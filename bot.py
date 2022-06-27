@@ -141,10 +141,10 @@ class Music(commands.Cog):
       await ctx.send('Nothing in the queue')
     else:
       await ctx.send('Heres whats in the Queue:')
-      x = 0
-      while x < len(song_queue):
-        await ctx.send(song_queue[x].title)
-        x+=1
+      message = ""
+      for x in song_queue:
+        message += (x.title + "\n")
+      await ctx.send(message)
 
   @commands.command()
   async def skip(self, ctx):
