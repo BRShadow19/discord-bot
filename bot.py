@@ -5,6 +5,7 @@ import os
 import youtube_dl
 from dotenv import load_dotenv
 from discord.ext import commands
+import random as rand
 song_queue = []
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -141,10 +142,10 @@ class Music(commands.Cog):
       await ctx.send('Nothing in the queue')
     else:
       await ctx.send('Heres whats in the Queue:')
-      x = 0
-      while x < len(song_queue):
-        await ctx.send(song_queue[x].title)
-        x+=1
+      message = ""
+      for x in song_queue:
+        message += (x.title + "\n")
+      await ctx.send(message)
 
   @commands.command()
   async def skip(self, ctx):
@@ -154,6 +155,13 @@ class Music(commands.Cog):
       await ctx.send('Now playing: {}'.format(self.currentTitle))
     else:
       await ctx.send('Nothing to skip lol')
+
+  @commands.command()
+  async def shuffle(self, ctx):
+    rand.shuffle(song_queue)
+    await ctx.send("The queue has been shuffled!")
+    await self.queue(ctx)
+
 
   @play.before_invoke
   async def ensure_voice(self, ctx):
