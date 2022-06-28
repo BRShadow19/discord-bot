@@ -1,4 +1,3 @@
-#imports
 import asyncio
 import discord
 import os
