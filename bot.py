@@ -1,4 +1,5 @@
 import asyncio
+import pafy
 import discord
 import os
 import youtube_dl
@@ -33,7 +34,7 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 # Bot token that connects us to the Discord API
 load_dotenv('token.env')
 token = os.environ.get('TOKEN')
-
+pafy_key = os.environ.get('KEY')
 bot = commands.Bot(command_prefix=commands.when_mentioned_or("m!"),
                    description='Simple music bot')
 
@@ -80,7 +81,7 @@ class Music(commands.Cog):
       if ctx.voice_client.is_playing():
         async with ctx.typing():
           player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-          song_queue.append(player)
+          song_queue.append(player.title)
           await ctx.send('up next: {}'.format(player.title))
       else:
         async with ctx.typing():
@@ -143,15 +144,16 @@ class Music(commands.Cog):
       await ctx.send('Heres whats in the Queue:')
       message = ""
       for x in song_queue:
-        message += (x.title + "\n")
+        message += (x + "\n")
       await ctx.send(message)
 
   @commands.command()
   async def skip(self, ctx):
     if len(song_queue) >= 1:
       ctx.voice_client.stop()
-      ctx.voice_client.play(song_queue.pop(0))
-      await ctx.send('Now playing: {}'.format(self.currentTitle))
+      player = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
+      ctx.voice_client.play(player)
+      await ctx.send('Now playing: {}'.format(player.title))
     else:
       await ctx.send('Nothing to skip lol')
 
@@ -160,6 +162,15 @@ class Music(commands.Cog):
     rand.shuffle(song_queue)
     await ctx.send("The queue has been shuffled!")
     await self.queue(ctx)
+
+  @commands.command()
+  async def playlist(self, ctx, *, url):
+    pafy.set_api_key(pafy_key)
+    playlist = pafy.get_playlist2(url)
+    for song in playlist:
+      title = song.title
+      song_queue.append(title)
+    await ctx.send("{} songs have been added to the queue!".format(len(playlist)))
 
 
   @play.before_invoke
