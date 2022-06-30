@@ -1,4 +1,5 @@
 import asyncio
+from attr import NOTHING
 import pafy
 import discord
 import os
@@ -47,6 +48,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         self.title = data.get('title')
         self.url = data.get('url')
+        self.duration = data.get('duration')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -60,7 +62,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
-
 class Music(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
@@ -72,24 +73,38 @@ class Music(commands.Cog):
       """Joins a voice channel"""
 
       if ctx.voice_client is not None:
-          return await ctx.voice_client.move_to(channel)
-
-      await channel.connect()
+          await ctx.voice_client.move_to(channel)
+          await ctx.send('Sliding into {}'.format(channel))
+      try:
+        await channel.connect()
+        await ctx.send('Sliding into {}'.format(channel))
+      except Exception:
+        pass
     
   @commands.command()
   async def play(self, ctx, *, url):
-      if ctx.voice_client.is_playing():
-        async with ctx.typing():
-          player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-          song_queue.append(player.title)
-          await ctx.send('up next: {}'.format(player.title))
-      else:
-        async with ctx.typing():
-          player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-          ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
-          await ctx.send('Now playing: {}'.format(player.title))
-          self.currentTitle = player.title
+    if ctx.voice_client.is_playing():
+      async with ctx.typing():
+        playerqueue = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+        song_queue.append(playerqueue.title)
+        await ctx.send('up next: {}'.format(playerqueue.title))
+        await self.whileplaying(ctx, playerqueue)
+    else:
+      async with ctx.typing():
+        player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+        ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+        await ctx.send('Now playing: {}'.format(player.title))
+        self.currentTitle = player.title
 
+  @commands.command()
+  async def whileplaying(self,ctx, playerqueue):
+    while len(song_queue) >= 1:
+      if ctx.voice_client.is_playing():
+        await asyncio.sleep(5)
+      else:
+        playerqueue = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
+        ctx.voice_client.play(playerqueue, after=lambda e: print('Player error: %s' % e) if e else None)
+        await ctx.send('up next: {}'.format(playerqueue.title))
 
   @commands.command()
   async def stop(self, ctx):
@@ -98,7 +113,7 @@ class Music(commands.Cog):
       await ctx.send('No music to stop lol')
     else:
       ctx.voice_client.stop()
-      await ctx.send('Stopped playing {}'.format(self.currentTitle))
+      await ctx.send('Music has stopped playing')
     
   @commands.command()
   async def pause(self, ctx):
@@ -114,6 +129,11 @@ class Music(commands.Cog):
         await ctx.send('Bot is currently not in a voice channel')
 
   @commands.command()
+  async def duration(self, ctx, *, url):
+    player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+    await ctx.send('This is song is: {} minutes long'.format(player.duration/60))
+
+  @commands.command()
   async def resume(self, ctx):
     ctx.voice_client.resume()
     await ctx.send('Resuming the music!')
@@ -126,7 +146,7 @@ class Music(commands.Cog):
       await ctx.send('No music is paused right now.')
 
   @commands.command()
-  async def commandList(self, ctx):
+  async def commandlist(self, ctx):
     await ctx.send('Commands:'+
     '\nm!join: Puts the bot in your voice channel'+
     '\nm!play: plays music'+
@@ -134,7 +154,10 @@ class Music(commands.Cog):
     '\nm!resume: resumes music'+
     '\nm!leave: Bot leaves'+
     '\nm!queue: see whats in the queue'+
-    '\nm!skip: skips current song')
+    '\nm!skip: skips current song'+
+    '\nm!playlist: You can add a YouTube playlist full of songs'+
+    '\nm!shuffle: Shuffles the playlist'+
+    '\nm!clear: Clears the playlist')
 
   @commands.command()
   async def queue(self, ctx):
@@ -146,6 +169,14 @@ class Music(commands.Cog):
       for x in song_queue:
         message += (x + "\n")
       await ctx.send(message)
+
+  @commands.command()
+  async def clear(self,ctx):
+    if len(song_queue) == 0:
+      await ctx.send('Nothing to clear')
+    else:
+      song_queue.clear()
+      await ctx.send("queue has been cleared")
 
   @commands.command()
   async def skip(self, ctx):
