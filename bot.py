@@ -142,9 +142,15 @@ class Music(commands.Cog):
     if song.duration < 60:
       await ctx.send('This is song is: {} seconds long'.format(song.duration))
     if song.duration > 60 and song.duration < 3600:
-      await ctx.send('This is song is: {} minutes long'.format(song.duration/60))
+      minutes = song.duration//60
+      seconds = song.duration%60
+      await ctx.send('This is song is: {} minutes and {} seconds long'.format(minutes, seconds))
     if song.duration >= 3600:
-      await ctx.send('This is song is: {} hours long'.format(song.duration/3600))
+      hours = song.duration//3600
+      seconds = song.duration%3600
+      minutes = seconds//60
+      seconds = seconds%60
+      await ctx.send('This is song is: {} hours, {} minutes, and {} seconds long'.format(hours, minutes, seconds))
 
   @commands.command()
   async def resume(self, ctx):
@@ -206,6 +212,7 @@ class Music(commands.Cog):
       player = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
       ctx.voice_client.play(player)
       await ctx.send('Now playing: {}'.format(player.title))
+      await self.duration(ctx, player)
 
   @commands.command()
   async def shuffle(self, ctx):
