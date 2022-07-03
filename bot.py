@@ -44,7 +44,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         super().__init__(source, volume)
 
         self.data = data
-
+        self.is_whileplaying = False
         self.title = data.get('title')
         self.url = data.get('url')
         self.duration = data.get('duration')
@@ -66,6 +66,7 @@ class Music(commands.Cog):
     self.bot = bot
     self.isPlaying = False
     self.currentTitle = ''
+    self.skipping = False
 
   @commands.command()
   async def join(self, ctx, *, channel: discord.VoiceChannel):
@@ -96,7 +97,7 @@ class Music(commands.Cog):
 
   async def whileplaying(self,ctx):
     while len(song_queue) >= 1:
-      if ctx.voice_client.is_playing():
+      if ctx.voice_client.is_playing() or self.skipping:
         await asyncio.sleep(5)
       else:
         player = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
@@ -213,6 +214,7 @@ class Music(commands.Cog):
       ctx.voice_client.play(player)
       await ctx.send('Now playing: {}'.format(player.title))
       await self.duration(ctx, player)
+    self.skipping = False
 
   @commands.command()
   async def shuffle(self, ctx):
@@ -229,6 +231,11 @@ class Music(commands.Cog):
       song_queue.append(title)
     await ctx.send("{} songs have been added to the queue!".format(len(playlist)))
 
+
+  @skip.before_invoke
+  async def ensure_skip(self, ctx):
+    self.skipping = True
+    await asyncio.sleep(1)
 
   @play.before_invoke
   async def ensure_voice(self, ctx):
