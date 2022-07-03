@@ -237,7 +237,7 @@ class Music(commands.Cog):
       await ctx.send('Now Playing: {}'.format(player.title))
       await self.duration(ctx,player)
       self.currentTitle = player.title
-
+      await self.whileplaying(self,ctx)
 
   @skip.before_invoke
   async def ensure_skip(self, ctx):
@@ -253,6 +253,14 @@ class Music(commands.Cog):
         await ctx.send("You are not connected to a voice channel.")
         raise commands.CommandError("Author not connected to a voice channel.")
 
+  @playlist.before_invoke
+  async def ensure_voice(self, ctx):
+    if ctx.voice_client is None:
+      if ctx.author.voice:
+        await ctx.author.voice.channel.connect()
+      else:
+        await ctx.send("You are not connected to a voice channel.")
+        raise commands.CommandError("Author not connected to a voice channel.")
 @bot.event
 async def on_ready():
     print('Logged in as {0} ({0.id})'.format(bot.user))
