@@ -230,6 +230,13 @@ class Music(commands.Cog):
       title = song.title
       song_queue.append(title)
     await ctx.send("{} songs have been added to the queue!".format(len(playlist)))
+    await self.ensure_voice(ctx)
+    if not ctx.voice_client.is_playing():
+      player = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
+      ctx.voice_client.play(player)
+      await ctx.send('Now Playing: {}'.format(player.title))
+      await self.duration(ctx,player)
+      self.currentTitle = player.title
 
 
   @skip.before_invoke
