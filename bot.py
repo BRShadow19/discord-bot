@@ -35,6 +35,7 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 load_dotenv('token.env')
 token = os.environ.get('TOKEN')
 pafy_key = os.environ.get('KEY')
+pafy.set_api_key(pafy_key)
 bot = commands.Bot(command_prefix=commands.when_mentioned_or("m!"),
                    description='Simple music bot')
 
@@ -84,16 +85,35 @@ class Music(commands.Cog):
   @commands.command()
   async def play(self, ctx, *, url):
     player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+    is_playlist = self.isPlaylist(url)
     if ctx.voice_client.is_playing():
+      if not is_playlist:
         song_queue.append(player.title)
         await ctx.send('up next: {}'.format(player.title))
         await self.whileplaying(ctx)
+      else:
+        await self.playlist(ctx, url)
     else:
-      async with ctx.typing():
-        ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
-        await ctx.send('Now playing: {}'.format(player.title))
-        await self.duration(ctx,player)
-        self.currentTitle = player.title
+      if not is_playlist:   
+        async with ctx.typing():
+          ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+          await ctx.send('Now playing: {}'.format(player.title))
+          await self.duration(ctx,player)
+          self.currentTitle = player.title
+      else:
+        await self.playlist(ctx, url)
+
+  def isPlaylist(self, url):
+    ret = False
+    try:
+      playlist = pafy.get_playlist2(url)
+      ret = True
+    except(ValueError):
+      pass
+    except(TypeError):
+      pass
+    finally:
+      return ret
 
   async def whileplaying(self,ctx):
     while len(song_queue) >= 1:
@@ -222,9 +242,7 @@ class Music(commands.Cog):
     await ctx.send("The queue has been shuffled!")
     await self.queue(ctx)
 
-  @commands.command()
-  async def playlist(self, ctx, *, url):
-    pafy.set_api_key(pafy_key)
+  async def playlist(self, ctx, url):
     playlist = pafy.get_playlist2(url)
     for song in playlist:
       title = song.title
@@ -245,7 +263,6 @@ class Music(commands.Cog):
     await asyncio.sleep(1)
 
   @play.before_invoke
-  @playlist.before_invoke
   async def ensure_voice(self, ctx):
     if ctx.voice_client is None:
       if ctx.author.voice:
