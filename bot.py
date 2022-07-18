@@ -187,29 +187,31 @@ class Music(commands.Cog):
 
   @commands.command()
   async def list(self, ctx):
-    await ctx.send('Commands:'+
-    '\nm!join: Puts the bot in your voice channel'+
-    '\nm!play: plays music'+
-    '\nm!stop: stops playing music'+
-    '\nm!resume: resumes music'+
-    '\nm!leave: Bot leaves'+
-    '\nm!queue: see whats in the queue'+
-    '\nm!skip: skips current song'+
-    '\nm!playlist: You can add a YouTube playlist full of songs'+
-    '\nm!shuffle: Shuffles the playlist'+
-    '\nm!clear: Clears the playlist' +
-    '\nm!np: Displays the current song')
+    desc = str('\nm!join: Puts the bot in your voice channel'
+    +'\nm!play: Play a song or playlist from YouTube'
+    +'\nm!pause: Pause the current song'
+    +'\nm!resume: Resume the paused song'
+    +'\nm!stop: Stops playing music'
+    +'\nm!leave: Bot leaves the voice channel'
+    +'\nm!queue: See a list of songs in the queue'
+    +'\nm!skip: Skips the current song'
+    +'\nm!shuffle: Shuffles the queue'
+    +'\nm!clear: Clears the queue' 
+    +'\nm!np: Displays the current song')
+    e = discord.Embed(title="List of Commands:", description=desc, color=discord.Color.blue())
+    await ctx.send(embed=e)
 
   @commands.command()
   async def queue(self, ctx):
     if len(song_queue) == 0:
       await ctx.send('Nothing in the queue')
     else:
-      await ctx.send('Heres whats in the Queue:')
+      #await ctx.send('Heres whats in the Queue:')
       message = ""
       for x in song_queue:
         message += (x + "\n")
-      await ctx.send(message)
+        e = discord.Embed(title="Here's what's in the Queue:", description=message, color=discord.Color.orange())
+      await ctx.send(embed=e)
 
   @commands.command()
   async def clear(self,ctx):
@@ -217,7 +219,7 @@ class Music(commands.Cog):
       await ctx.send('Nothing to clear')
     else:
       song_queue.clear()
-      await ctx.send("queue has been cleared")
+      await ctx.send("Queue has been cleared")
 
   @commands.command()
   async def skip(self, ctx):
@@ -256,6 +258,13 @@ class Music(commands.Cog):
       await self.duration(ctx,player)
       self.currentTitle = player.title
       await self.whileplaying(ctx)
+
+  """
+  @commands.command()
+  async def embed(self, ctx, content):
+    e = discord.Embed(title="Test", description=content, color=discord.Color.blue())
+    await ctx.send(embed=e)
+  """
 
   @skip.before_invoke
   async def ensure_skip(self, ctx):
