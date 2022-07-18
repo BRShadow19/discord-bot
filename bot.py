@@ -6,6 +6,7 @@ import youtube_dl
 from dotenv import load_dotenv
 from discord.ext import commands
 import random as rand
+from itertools import cycle, islice
 song_queue = []
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -68,6 +69,7 @@ class Music(commands.Cog):
     self.isPlaying = False
     self.currentTitle = ''
     self.skipping = False
+    self.lq = False
 
   @commands.command()
   async def join(self, ctx, *, channel: discord.VoiceChannel):
@@ -89,7 +91,7 @@ class Music(commands.Cog):
     if ctx.voice_client.is_playing():
       if not is_playlist:
         song_queue.append(player.title)
-        await ctx.send('up next: {}'.format(player.title))
+        await ctx.send(':white_check_mark: Now in line -> **{}***({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
         await self.whileplaying(ctx)
       else:
         await self.playlist(ctx, url)
@@ -97,8 +99,7 @@ class Music(commands.Cog):
       if not is_playlist:   
         async with ctx.typing():
           ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
-          await ctx.send('Now playing: {}'.format(player.title))
-          await self.duration(ctx,player)
+          await ctx.send(':notes: Now playing: **{}***({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
           self.currentTitle = player.title
       else:
         await self.playlist(ctx, url)
@@ -116,23 +117,40 @@ class Music(commands.Cog):
       return ret
 
   async def whileplaying(self,ctx):
+
     while len(song_queue) >= 1:
       if ctx.voice_client.is_playing() or self.skipping:
-        await asyncio.sleep(5)
+        await asyncio.sleep(2)
+        while self.lq == True:
+          while ctx.voice_client.is_playing():
+              await asyncio.sleep(5)
+          for songs in islice(cycle(song_queue), len(song_queue) * 100):
+            try:
+              player = await YTDLSource.from_url(songs, loop=self.bot.loop, stream=True)
+              ctx.voice_client.play(player) 
+              await ctx.send(':notes: Now playing: **{}***({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+            except (TypeError):
+              pass
+            except (UnboundLocalError):
+              pass
+              self.currentTitle = player.title
+              while ctx.voice_client.is_playing():
+                await asyncio.sleep(4)
       else:
         player = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
         ctx.voice_client.play(player)
-        await ctx.send('Now Playing: {}'.format(player.title))
+        await ctx.send('Now playing: **{}***({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
         await self.duration(ctx,player)
         self.currentTitle = player.title
 
   @commands.command()
   async def stop(self, ctx):
+    self.lq == False
     """Stops and disconnects the bot from voice"""
     if ctx.voice_client.is_playing() == False:
       await ctx.send('No music to stop lol')
     else:
-      ctx.voice_client.stop()
+      await ctx.voice_client.disconnect()
       await ctx.send('Music has stopped playing')
     
   @commands.command()
@@ -144,7 +162,7 @@ class Music(commands.Cog):
   async def leave(self, ctx):
       if ctx.voice_client is not None:
         await ctx.send('See ya next time')
-        await ctx.voice_client.disconnect()
+        ctx.voice_client.disconnect()
       else: 
         await ctx.send('Bot is currently not in a voice channel')
   
@@ -155,24 +173,23 @@ class Music(commands.Cog):
     if ctx.voice_client and ctx.voice_client.is_playing() == False:
       await ctx.send('Nothing is playing')
     if ctx.voice_client.is_playing():
-      await ctx.send('Now Playing {}'.format(self.currentTitle))
+      await ctx.send(':slight_smile: Now Playing: **{}**'.format(self.currentTitle))
 
   @commands.command()
   async def duration(self, ctx, player):
     song = await YTDLSource.from_url(player.title, loop=self.bot.loop, stream=True)
     if song.duration < 60:
-      await ctx.send('This is song is: {} seconds long'.format(song.duration))
+      await ctx.send('{} seconds long'.format(song.duration))
     if song.duration > 60 and song.duration < 3600:
       minutes = song.duration//60
       seconds = song.duration%60
-      await ctx.send('This is song is: {} minutes and {} seconds long'.format(minutes, seconds))
+      await ctx.send('{} minutes and {} seconds long'.format(minutes, seconds))
     if song.duration >= 3600:
       hours = song.duration//3600
       seconds = song.duration%3600
       minutes = seconds//60
       seconds = seconds%60
-      await ctx.send('This is song is: {} hours, {} minutes, and {} seconds long'.format(hours, minutes, seconds))
-
+      await ctx.send('{} hours, {} minutes, and {} seconds long'.format(hours, minutes, seconds))
   @commands.command()
   async def resume(self, ctx):
     ctx.voice_client.resume()
@@ -181,23 +198,23 @@ class Music(commands.Cog):
   @commands.command()
   async def isPaused(self, ctx):
     if ctx.voice_client.is_paused():
-      await ctx.send('{} is currently paused.'.format(self.currentTitle))
+      await ctx.send('**{}** is currently paused.'.format(self.currentTitle))
     else:
       await ctx.send('No music is paused right now.')
 
   @commands.command()
   async def list(self, ctx):
-    desc = str('\nm!join: Puts the bot in your voice channel'
-    +'\nm!play: Play a song or playlist from YouTube'
-    +'\nm!pause: Pause the current song'
-    +'\nm!resume: Resume the paused song'
-    +'\nm!stop: Stops playing music'
-    +'\nm!leave: Bot leaves the voice channel'
-    +'\nm!queue: See a list of songs in the queue'
-    +'\nm!skip: Skips the current song'
-    +'\nm!shuffle: Shuffles the queue'
-    +'\nm!clear: Clears the queue' 
-    +'\nm!np: Displays the current song')
+    desc = str('\n`m!join:` Puts the bot in your voice channel'
+    +'\n`m!play:` Play a song or playlist from YouTube'
+    +'\n`m!pause:` Pause the current song'
+    +'\n`m!resume:` Resume the paused song'
+    +'\n`m!stop:` Stops playing music'
+    +'\n`m!leave:` Bot leaves the voice channel'
+    +'\n`m!queue:` See a list of songs in the queue'
+    +'\n`m!skip:` Skips the current song'
+    +'\n`m!shuffle:` Shuffles the queue'
+    +'\n`m!clear:` Clears the queue' 
+    +'\n`m!np:` Displays the current song')
     e = discord.Embed(title="List of Commands:", description=desc, color=discord.Color.blue())
     await ctx.send(embed=e)
 
@@ -212,9 +229,23 @@ class Music(commands.Cog):
         message += (x + "\n")
         e = discord.Embed(title="Here's what's in the Queue:", description=message, color=discord.Color.orange())
       await ctx.send(embed=e)
+  
+  @commands.command()
+  async def loop(self,ctx):
+    song_queue.append(self.currentTitle)
+    if len(song_queue) > 0:
+      if self.lq == True:
+        await ctx.send("Stopping repeat")
+        self.lq = False
+      else:
+        await ctx.send("Queue is being `looped!`")
+        self.lq = True
+    else:
+      await ctx.send("Nothing inside the queue to loop")
 
   @commands.command()
   async def clear(self,ctx):
+    self.lq == False
     if len(song_queue) == 0:
       await ctx.send('Nothing to clear')
     else:
