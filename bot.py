@@ -85,24 +85,27 @@ class Music(commands.Cog):
         pass
     
   @commands.command()
-  async def play(self, ctx, *, url):
-    player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-    is_playlist = self.isPlaylist(url)
-    if ctx.voice_client.is_playing():
-      if not is_playlist:
-        song_queue.append(player.title)
-        await ctx.send(':white_check_mark: Now in line -> **{}***({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
-        await self.whileplaying(ctx)
+  async def play(self, ctx, *, url=''):
+    if len(url) > 0:
+      player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+      is_playlist = self.isPlaylist(url)
+      if ctx.voice_client.is_playing():
+        if not is_playlist:
+          song_queue.append(player.title)
+          await ctx.send(':white_check_mark: Now in line -> **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+          await self.whileplaying(ctx)
+        else:
+          await self.playlist(ctx, url)
       else:
-        await self.playlist(ctx, url)
+        if not is_playlist:   
+          async with ctx.typing():
+            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+            self.currentTitle = player.title
+        else:
+          await self.playlist(ctx, url)
     else:
-      if not is_playlist:   
-        async with ctx.typing():
-          ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
-          await ctx.send(':notes: Now playing: **{}***({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
-          self.currentTitle = player.title
-      else:
-        await self.playlist(ctx, url)
+      await ctx.send('To use this command, please enter a song name or url')
 
   def isPlaylist(self, url):
     ret = False
@@ -117,7 +120,6 @@ class Music(commands.Cog):
       return ret
 
   async def whileplaying(self,ctx):
-
     while len(song_queue) >= 1:
       if ctx.voice_client.is_playing() or self.skipping:
         await asyncio.sleep(2)
@@ -128,7 +130,7 @@ class Music(commands.Cog):
             try:
               player = await YTDLSource.from_url(songs, loop=self.bot.loop, stream=True)
               ctx.voice_client.play(player) 
-              await ctx.send(':notes: Now playing: **{}***({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+              await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
             except (TypeError):
               pass
             except (UnboundLocalError):
@@ -139,19 +141,22 @@ class Music(commands.Cog):
       else:
         player = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
         ctx.voice_client.play(player)
-        await ctx.send('Now playing: **{}***({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+        await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
         await self.duration(ctx,player)
         self.currentTitle = player.title
 
   @commands.command()
   async def stop(self, ctx):
     self.lq == False
-    """Stops and disconnects the bot from voice"""
-    if ctx.voice_client.is_playing() == False:
-      await ctx.send('No music to stop lol')
+    if ctx.voice_client:
+      """Stops and disconnects the bot from voice"""
+      if ctx.voice_client.is_playing() == False:
+        await ctx.send(':person_facepalming: No music to stop lol')
+      else:
+        await ctx.voice_client.disconnect()
+        await ctx.send('Music has stopped playing')
     else:
-      await ctx.voice_client.disconnect()
-      await ctx.send('Music has stopped playing')
+      await ctx.send(':person_facepalming: No music to stop lol')
     
   @commands.command()
   async def pause(self, ctx):
@@ -190,6 +195,7 @@ class Music(commands.Cog):
       minutes = seconds//60
       seconds = seconds%60
       await ctx.send('{} hours, {} minutes, and {} seconds long'.format(hours, minutes, seconds))
+
   @commands.command()
   async def resume(self, ctx):
     ctx.voice_client.resume()
@@ -225,8 +231,8 @@ class Music(commands.Cog):
     else:
       #await ctx.send('Heres whats in the Queue:')
       message = ""
-      for x in song_queue:
-        message += (x + "\n")
+      for i in range(len(song_queue)):
+        message += (str(i+1) + ". " + song_queue[i] + "\n")
         e = discord.Embed(title="Here's what's in the Queue:", description=message, color=discord.Color.orange())
       await ctx.send(embed=e)
   
