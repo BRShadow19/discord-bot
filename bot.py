@@ -1,5 +1,4 @@
 import asyncio
-from email.mime import image
 import pafy
 import discord
 import os
@@ -8,6 +7,7 @@ from dotenv import load_dotenv
 from discord.ext import commands
 import random as rand
 from itertools import cycle, islice
+import requests, json
 song_queue = []
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -37,6 +37,7 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 load_dotenv('token.env')
 token = os.environ.get('TOKEN')
 pafy_key = os.environ.get('KEY')
+weather_key = os.environ.get('WEA')
 pafy.set_api_key(pafy_key)
 bot = commands.Bot(command_prefix=commands.when_mentioned_or("m!"),
                    description='Simple music bot')
@@ -237,7 +238,6 @@ class Music(commands.Cog):
         e = discord.Embed(title="__Here's what's in the Queue:__", description=message, color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
       await ctx.send(embed=e)
 
-  
   @commands.command()
   async def loop(self,ctx):
     song_queue.append(self.currentTitle)
@@ -283,6 +283,27 @@ class Music(commands.Cog):
     await ctx.send(":twisted_rightwards_arrows: The queue has been shuffled!")
     await self.queue(ctx)
 
+  @commands.command()
+  async def weather(self,ctx,city=""):
+    current_city = str(city)
+    if city == '' or city is None:
+        await ctx.send(":person_facepalming: Nothing is a city? :person_facepalming:")
+        return None
+    complete_url = "http://api.openweathermap.org/data/2.5/weather?" + "appid=" + weather_key + "&q=" + current_city + "&units=imperial"
+    response = requests.get(complete_url)
+    data = response.json()
+    if data["cod"] != "404":
+        opendata = data["main"]
+        temp = opendata["temp"]
+        temp_max = opendata["temp_max"]
+        temp_min = opendata["temp_min"]
+        humidity = opendata["humidity"]
+        weather = data["weather"]
+        desc = weather[0]["description"]
+        await ctx.send("High: *{}°*, low: *{}°*\nCurrent Temp: **{}°**\nHumidity: {}\nDescription: {}".format(str(temp_max), str(temp_min), str(temp), str(humidity), str(desc)))
+    else:
+        await ctx.send(":person_facepalming: That isn't a city :person_facepalming:")
+
   async def playlist(self, ctx, url):
     playlist = pafy.get_playlist2(url)
     for song in playlist:
@@ -297,6 +318,7 @@ class Music(commands.Cog):
       await self.duration(ctx,player)
       self.currentTitle = player.title
       await self.whileplaying(ctx)
+
 
   """
   @commands.command()
