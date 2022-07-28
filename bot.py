@@ -129,19 +129,26 @@ class Music(commands.Cog):
         await asyncio.sleep(3)
         while self.lq == True:
           while ctx.voice_client.is_playing():
-              await asyncio.sleep(5)
+            await asyncio.sleep(2)
           for songs in islice(cycle(song_queue), len(song_queue) * 100):
             try:
-              player = await YTDLSource.from_url(songs, loop=self.bot.loop, stream=True)
-              ctx.voice_client.play(player) 
+              player = await YTDLSource.from_url(songs, loop=self.bot.loop, stream=True) 
+              ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
               await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+            except (AttributeError):
+              pass
             except (TypeError):
               pass
             except (UnboundLocalError):
               pass
-              self.currentTitle = player.title
-              while ctx.voice_client.is_playing():
-                await asyncio.sleep(4)
+            except (discord.errors.ClientException):
+              pass
+            finally:
+              if ctx.voice_client.is_playing() is None:
+                while ctx.voice_client.is_playing() == True:
+                  await asyncio.sleep(2)
+              else:
+                return None
       else:
         player = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
         ctx.voice_client.play(player)
@@ -150,7 +157,6 @@ class Music(commands.Cog):
 
   @commands.command()
   async def stop(self, ctx):
-    self.lq == False
     if ctx.voice_client:
       """Stops and disconnects the bot from voice"""
       if ctx.voice_client.is_playing() == False:
@@ -158,6 +164,8 @@ class Music(commands.Cog):
       else:
         await ctx.voice_client.disconnect()
         await ctx.send('Bye Bye :wave:')
+        song_queue.clear()
+        self.lq = False
     else:
       await ctx.reply(':person_facepalming: No music to stop lol')
     
