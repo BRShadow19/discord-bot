@@ -125,8 +125,8 @@ class Music(commands.Cog):
 
   async def whileplaying(self,ctx):
     while len(song_queue) >= 1:
-      if ctx.voice_client.is_playing() or self.skipping:
-        await asyncio.sleep(2)
+      if ctx.voice_client.is_playing() or self.skipping or ctx.voice_client.is_paused():
+        await asyncio.sleep(3)
         while self.lq == True:
           while ctx.voice_client.is_playing():
               await asyncio.sleep(5)
@@ -146,7 +146,6 @@ class Music(commands.Cog):
         player = await YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
         ctx.voice_client.play(player)
         await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
-        await self.duration(ctx,player)
         self.currentTitle = player.title
 
   @commands.command()
