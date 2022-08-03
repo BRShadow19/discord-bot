@@ -4,6 +4,7 @@ import requests
 import json
 import os
 import datetime
+import string
 from discord.ext import commands
 
 
@@ -14,6 +15,7 @@ class Weather(commands.Cog):
     @commands.command()
     async def weather(self,ctx,city='',city_second_space='',city_third_space=''):
         current_city = str(city) + " " + str(city_second_space) + " " + city_third_space
+        current_city = string.capwords(current_city)
         if city == '' or city is None:
             await ctx.send(":person_facepalming: Nothing is a city? :person_facepalming:")
             return None
@@ -28,7 +30,7 @@ class Weather(commands.Cog):
             humidity = opendata["humidity"]
             weather = data["weather"]
             desc = weather[0]["description"]
-            g = discord.Embed(title=":white_sun_cloud: _**{}**_:thunder_cloud_rain:".format(current_city), description="High: *{}°*, low: *{}°*\nCurrent Temp: **{}°**\nHumidity: {}\nDescription: {}".format(str(temp_max), str(temp_min), str(temp), str(humidity), str(desc)), color=discord.Color.dark_blue()).set_footer(text='For a forecast 5 days in advance -> m!forecast', icon_url='https://i.imgur.com/oWQeUDj.png')
+            g = discord.Embed(title=":white_sun_cloud: _**{}**_:thunder_cloud_rain:".format(current_city), description="High: *{}°*, Low: *{}°*\nCurrent Temp: **{}°**\nHumidity: **{}%**\nDescription: {}".format(str(temp_max), str(temp_min), str(temp), str(humidity), string.capwords(str(desc))), color=discord.Color.dark_blue()).set_footer(text='For a forecast 5 days in advance -> m!forecast', icon_url='https://i.imgur.com/oWQeUDj.png')
             await ctx.send(embed=g)
         else:
             await ctx.send(":person_facepalming: That isn't a city :person_facepalming:")
@@ -36,6 +38,7 @@ class Weather(commands.Cog):
     @commands.command()
     async def forecast(self,ctx,city='',city_second_space='',city_third_space=''):
         current_city = str(city) + " " + str(city_second_space) + " " + city_third_space
+        current_city = string.capwords(current_city)
         if city == '' or city is None:
             await ctx.send(":person_facepalming: Nothing is a city? :person_facepalming:")
             return None
@@ -54,8 +57,8 @@ class Weather(commands.Cog):
             temp = ""
             tomorrow = datetime.date.today() + datetime.timedelta(days=1)
             for x in range(6):
-                temp += "**{}**\n:thermometer:High: {} - Low: {} - Avg: **{}**°\n sky: *{}*\n\n".format(tomorrow + datetime.timedelta(days=x), forecast[x]["main"]["temp_max"], forecast[x]["main"]["temp_min"], forecast[x]["main"]["temp"], forecast[x]["weather"][0]["description"])
-            g = discord.Embed(title=":white_sun_cloud: _**{}**_'s Expected Weather (Next 6 days) :thunder_cloud_rain:".format(current_city.capitalize()), description=temp, color=discord.Color.dark_blue()).set_footer(text='Want the current temperature? use m!weather', icon_url='https://i.imgur.com/oWQeUDj.png').set_thumbnail(url='https://i.imgur.com/j7WQ7bx.png')
+                temp += "**{}**\n:thermometer:High: {} - Low: {} - Avg: **{}**°\n sky: *{}*\n\n".format(tomorrow + datetime.timedelta(days=x), forecast[x]["main"]["temp_max"], forecast[x]["main"]["temp_min"], forecast[x]["main"]["temp"], string.capwords(forecast[x]["weather"][0]["description"]))
+            g = discord.Embed(title=":white_sun_cloud: _**{}**_'s Expected Weather (Next 6 days) :thunder_cloud_rain:".format(current_city), description=temp, color=discord.Color.dark_blue()).set_footer(text='Want the current temperature? use m!weather', icon_url='https://i.imgur.com/oWQeUDj.png').set_thumbnail(url='https://i.imgur.com/j7WQ7bx.png')
             await ctx.send(embed=g)
         else:
             await ctx.send(":person_facepalming: That isn't a city :person_facepalming:")
