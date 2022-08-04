@@ -6,6 +6,7 @@ from discord.ext import commands
 import random as rand
 from itertools import cycle, islice
 import YTDLSource as YTDL
+import link_utils
 song_queue = []
 pafy_key = ''
 
