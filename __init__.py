@@ -1,11 +1,13 @@
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
-import music
-import weather
 
 load_dotenv('token.env')
 token = os.environ.get('TOKEN')
+
+import music
+import weather
+
 
 bot = commands.Bot(command_prefix=commands.when_mentioned_or("m!"),
                    description='Simple music bot')

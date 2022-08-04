@@ -1,12 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from dotenv import load_dotenv
 import os
-
-
-global sp_api
-
-load_dotenv('token.env')
 
 try:
     SPOTIFY_ID = os.environ.get('SPOTIFY_ID')
@@ -43,17 +37,24 @@ async def identify_url(url):
     return ret
 
 """
-Takes in a url of a Spotify playlist, grabs the title and artist of each song, 
+Takes in a url of a Spotify track or playlist, grabs the title and artist of each song, 
 and returns a list of songs that can be searched using youtube_dl 
 """
 async def convert_spotify_to_youtube(url):
-    if(api):
-        data = sp_api.playlist_items(playlist_id=url, fields='items(track.name,track.artists.name)')
-        playlist = data['items']
-        songs = []
-        for track in playlist:
-            song = track['track']['name']
-            artist = track['track']['artists'][0]['name']
-            songs.append(song + ' ' + artist)
+    link_type = await identify_url(url)
+    songs = []
+    if api:
+        if link_type == "Spotify_Playlist":
+            data = sp_api.playlist_items(playlist_id=url, fields='items(track.name,track.artists.name)')
+            playlist = data['items']
+            for track in playlist:
+                song = track['track']['name']
+                artist = track['track']['artists'][0]['name']
+                songs.append(song + ' by ' + artist)
+        elif link_type == "Spotify":
+            data = sp_api.track(track_id=url)
+            artist = data['artists'][0]['name']
+            title = data['name']
+            songs.append(title + ' by ' + artist)
     return songs
 

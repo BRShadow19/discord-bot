@@ -34,23 +34,42 @@ class Music(commands.Cog):
   @commands.command()
   async def play(self, ctx, *, url=''):
     if len(url) > 0:
-      player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-      is_playlist = self.isPlaylist(url)
+      is_playlist = False
+      link_type = await link_utils.identify_url(url)
+      if link_type == 'Spotify' or 'Spotify_Playlist':
+        songs = await link_utils.convert_spotify_to_youtube(url)
+        if len(songs) == 1:
+          url = songs[0]
+        if len(songs) > 1:
+          is_playlist = True
+          url = songs[0]
+
+      if link_type == 'YouTube_Playlist':
+        is_playlist = True
+
       if ctx.voice_client.is_playing():
         if not is_playlist:
+          player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
           song_queue.append(player.title)
           await ctx.send(':white_check_mark: Now in line -> **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
           await self.whileplaying(ctx)
         else:
-          await self.playlist(ctx, url)
+          if link_type == 'Spotify_Playlist':
+            await self.playlist(ctx, songs, link_type)
+          else:
+            await self.playlist(ctx, url, link_type)
       else:
         if not is_playlist:   
           async with ctx.typing():
+            player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
             await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
             self.currentTitle = player.title
         else:
-          await self.playlist(ctx, url)
+          if link_type == 'Spotify_Playlist':
+            await self.playlist(ctx, songs, link_type)
+          else:
+            await self.playlist(ctx, url, link_type)
     else:
       await ctx.send('To use this command, please enter a song name or url')
 
@@ -236,18 +255,26 @@ class Music(commands.Cog):
     await self.queue(ctx)
 
   
-  async def playlist(self, ctx, url):
-    playlist = pafy.get_playlist2(url)
-    for song in playlist:
-      title = song.title
-      song_queue.append(title)
-    await ctx.send("{} songs have been added to the queue!".format(len(playlist)))
+  async def playlist(self, ctx, url, link_type):
+    await ctx.send(':musical_note: Gathering playlist, please hold :musical_note:')
+    if link_type == 'Spotify_Playlist':
+      for song in url:
+        song_queue.append(song)
+      await ctx.send("{} songs have been added to the queue!".format(len(url)))
+
+    elif link_type == 'YouTube_Playlist':
+      playlist = pafy.get_playlist2(url)
+      for song in playlist:
+        title = song.title
+        song_queue.append(title)
+      await ctx.send("{} songs have been added to the queue!".format(len(playlist)))
+
     await self.ensure_voice(ctx)
     if not ctx.voice_client.is_playing():
       player = await YTDL.YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
       ctx.voice_client.play(player)
       await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
-      await self.duration(ctx,player)
+      #await self.duration(ctx,player)
       self.currentTitle = player.title
       await self.whileplaying(ctx)
 
