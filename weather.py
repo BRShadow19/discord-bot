@@ -14,6 +14,19 @@ class Weather(commands.Cog):
         
     @commands.command()
     async def weather(self,ctx,city='',city_second_space='',city_third_space=''):
+        """Sends a message to the discord channel containing weather information about a given location.
+        Weather information includes high/low temperatures, the humidity, and current weather conditions (cloudy, rainy, etc.)
+
+        Args:
+            ctx (obj): Object containing all information about the context of the bot within a Discord server,
+                such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
+            city (str, optional): First word in the name of the city. Defaults to ''.
+            city_second_space (str, optional): Second word in the name of the city. Defaults to ''.
+            city_third_space (str, optional): Third word in the name of the city. Defaults to ''.
+
+        Returns:
+            None: If the user does not enter any characters for the city, the method will return None (otherwise the function runs to completion without returning)
+        """        
         current_city = str(city) + " " + str(city_second_space) + " " + city_third_space
         current_city = string.capwords(current_city)
         if city == '' or city is None:
@@ -69,8 +82,8 @@ class Weather(commands.Cog):
 
 weather_key = ''
 
-def setup(bot):
+async def setup(bot):
     global weather_key 
     weather_key = os.environ.get('WEA')
-    bot.add_cog(Weather(bot))
+    await bot.add_cog(Weather(bot))
     print("Weather is online!")

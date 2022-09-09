@@ -300,9 +300,9 @@ class Music(commands.Cog):
         await ctx.send("You are not connected to a voice channel.")
         raise commands.CommandError("Author not connected to a voice channel.")
 
-def setup(bot):
+async def setup(bot):
   global pafy_key
   pafy_key = os.environ.get('KEY')
   pafy.set_api_key(pafy_key)
-  bot.add_cog(Music(bot))
+  await bot.add_cog(Music(bot))
   print("Music is online!")
