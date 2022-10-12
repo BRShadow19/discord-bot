@@ -182,7 +182,7 @@ class Music(commands.Cog):
     """    
     if ctx.voice_client is not None:
       await ctx.send('See ya next time')
-      ctx.voice_client.disconnect()
+      await ctx.voice_client.disconnect()
     else: 
       await ctx.send('Bot is currently not in a voice channel ._.')
   
