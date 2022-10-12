@@ -134,7 +134,7 @@ class Music(commands.Cog):
               else:
                 return None
       else:
-        player = await YTDL.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
+        player = await YTDL.YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
         ctx.voice_client.play(player)
         await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
         self.currentTitle = player.title
