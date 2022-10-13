@@ -19,7 +19,7 @@ class Utils(commands.Cog):
     
         
     @commands.command()
-    async def help(self, ctx, *,type = ''):
+    async def list(self, ctx, *,type = ''):
         """Sends a Discord Embed containing the list of all music commands
 
         Args:
@@ -27,8 +27,8 @@ class Utils(commands.Cog):
             such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
         """    
         if(len(type) == 0):
-            await ctx.reply('m!help options are `weather` `music` `general`' 
-                            +'\nexample: `m!help music`')
+            await ctx.reply('m!list options are `weather` `music` `general`' 
+                            +'\nexample: `m!list music`')
         else:
             type.lower()
             general_desc = str('soon :copium:')
@@ -53,13 +53,13 @@ class Utils(commands.Cog):
             +'\n`m!shuffle:` Shuffles the queue'
             +'\n`m!clear:` Clears the queue' 
             +'\n`m!np:` Displays the current song')
-            helpdictionary = {'general': general_desc, 'osu': osu_desc, 'overwatch': overwatch_desc, 
+            help_dictionary = {'general': general_desc, 'osu': osu_desc, 'overwatch': overwatch_desc, 
                                 'league': league_desc, 'weather': weather_desc, 'music': music_desc}
-            if(not helpdictionary.has_key(type)):
-                await ctx.reply('m!help options are `weather` `music` `general`' 
-                            +'\nexample: `m!help music`')
+            if(not type in help_dictionary.keys()):
+                await ctx.reply('m!list options are `weather` `music` `general`' 
+                            +'\nexample: `m!list music`')
             else:
-                e = discord.Embed(title="__List of Commands:__", description=helpdictionary[type], color=discord.Color.blue()). set_thumbnail(url='https://i.imgur.com/txfgXAE.png')
+                e = discord.Embed(title="__List of Commands:__", description=help_dictionary[type], color=discord.Color.blue()). set_thumbnail(url='https://i.imgur.com/txfgXAE.png')
                 await ctx.reply(embed=e)
 
     @commands.command()
@@ -79,7 +79,7 @@ class Utils(commands.Cog):
 
     @commands.command()
     async def coinflip(self, ctx):
-        num = random.randit(1,2)
+        num = random.randint(1,2)
         if(num == 1):
             await ctx.reply('Heads')
         elif(num == 2):
@@ -87,11 +87,11 @@ class Utils(commands.Cog):
 
 
 async def setup(bot):
-  """Adds this cog to the bot, meaning that the commands in the Utils class can be used by the bot/users
+    """Adds this cog to the bot, meaning that the commands in the Utils class can be used by the bot/users
 
     Args:
         bot (discord.Bot): The bot object to have the cog added to
     """    
-  await bot.add_cog(Utils(bot))
-  print("Util is online!")
+    await bot.add_cog(Utils(bot))
+    print("Util is online!")
         
