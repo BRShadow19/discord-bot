@@ -44,7 +44,7 @@ class Weather(commands.Cog):
             weather = data["weather"]
             desc = weather[0]["description"]
             # Create a Discord Embed object using the gathered info
-            g = discord.Embed(title=":white_sun_cloud: _**{}**_:thunder_cloud_rain:".format(current_city), description="High: *{}°*, Low: *{}°*\nCurrent Temp: **{}°**\nHumidity: **{}%**\nDescription: {}".format(str(temp_max), str(temp_min), str(temp), str(humidity), string.capwords(str(desc))), color=discord.Color.dark_blue()).set_footer(text='For a forecast 5 days in advance -> m!forecast', icon_url='https://i.imgur.com/oWQeUDj.png')
+            g = discord.Embed(title=":white_sun_cloud: _**{}**_:thunder_cloud_rain:".format(current_city), description="High: *{}°*, Low: *{}°*\nCurrent Temp: **{}°**\nHumidity: **{}%**\nDescription: {}".format(str(temp_max), str(temp_min), str(temp), str(humidity), string.capwords(str(desc))), color=discord.Color.dark_blue()).set_footer(text='For a forecast 6 days in advance -> m!forecast', icon_url='https://i.imgur.com/oWQeUDj.png')
             await ctx.send(embed=g)
         else:
             await ctx.send(":person_facepalming: That isn't a city :person_facepalming:")
@@ -91,16 +91,6 @@ class Weather(commands.Cog):
             await ctx.send(embed=g)
         else:
             await ctx.send(":person_facepalming: That isn't a city :person_facepalming:")
-
-    @commands.command()
-    async def time(self,ctx):
-        """Sends a message telling the current time (based on where the bot host is located)
-
-        Args:
-            ctx (Obj): Object containing all information about the context of the bot within a Discord server,
-                such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
-        """        
-        await ctx.send(":clock2: *{}*".format(datetime.datetime.now().strftime("%I:%M %p on %A, %b %d")))
 
 
 weather_key = ''

@@ -9,6 +9,7 @@ token = os.environ.get('TOKEN')     # The Discord API bot token
 
 import music
 import weather
+import util
 
 bot_command_prefix = 'm!'
 bot_description = 'A simple music bot'
@@ -26,6 +27,7 @@ async def on_ready():
 # Add new cogs to the bot (link the commands to the bot)
 asyncio.run(music.setup(bot))
 asyncio.run(weather.setup(bot))
+#asyncio.run(util.setup(bot))
 
 # Start up the bot
 bot.run(token)

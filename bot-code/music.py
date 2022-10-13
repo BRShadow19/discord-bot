@@ -255,33 +255,8 @@ class Music(commands.Cog):
       await ctx.send(':pause_button: **{}** is currently paused.'.format(self.currentTitle))
     else:
       await ctx.send('No music is paused right now.')
-
-
-  # TODO: Move this command to a different file and have it list ALL commands, not just music-related
-  @commands.command()
-  async def list(self, ctx):
-    """Sends a Discord Embed containing the list of all music commands
-
-    Args:
-        ctx (Obj): Object containing all information about the context of the bot within a Discord server,
-          such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
-    """    
-
-    desc = str('\n`m!join:` Puts the bot in your voice channel'
-    +'\n`m!play:`Play a song or playlist from YouTube'
-    +'\n`m!pause:` Pause the current song'
-    +'\n`m!resume:` Resume the paused song'
-    +'\n`m!stop:` Stops playing music'
-    +'\n`m!leave:` Bot leaves the voice channel'
-    +'\n`m!queue:` See a list of songs in the queue'
-    +'\n`m!skip:` Skips the current song'
-    +'\n`m!shuffle:` Shuffles the queue'
-    +'\n`m!clear:` Clears the queue' 
-    +'\n`m!np:` Displays the current song')
-    e = discord.Embed(title="__List of Commands:__", description=desc, color=discord.Color.blue()). set_thumbnail(url='https://i.imgur.com/txfgXAE.png')
-    await ctx.reply(embed=e)
-
-
+  
+  
   @commands.command()
   async def queue(self, ctx):
     """Sends a Discord Embed containing all songs that are currently in the queue
