@@ -16,7 +16,7 @@ class Utils(commands.Cog):
         self.bot = bot
         self.answers = ["It is certain", "Outlook good", "You may rely on it ", "Ask again later", 
         "Concentrate and ask again", "Reply hazy, try again", "My reply is no", "My sources say no"]
-    
+        self.jokes = ["give me jokes to add please im begging you"]
         
     @commands.command()
     async def list(self, ctx, *,type = ''):
@@ -31,7 +31,11 @@ class Utils(commands.Cog):
                             +'\nexample: `m!list music`')
         else:
             type.lower()
-            general_desc = str('soon :copium:')
+            general_desc = str('\n`m!list [type]:` Gives a list of commands for the given type' 
+            + '\n`m!time:` Tells the time where the bot is hosted'
+            + '\n`m!8ball [question]:` Gives an 8ball answer to a yes or no question'
+            + '\n`m!joke:` Tells a joke'
+            + '\n`m!coinflip:` Flips a coin')
             
             osu_desc = str('soon :copium:')
 
@@ -85,6 +89,10 @@ class Utils(commands.Cog):
         elif(num == 2):
             await ctx.reply('Tails')
 
+    @commands.command()
+    async def joke(self, ctx):
+        index = random.randint(0, len(self.jokes) - 1)
+        await ctx.reply(self.jokes[index])
 
 async def setup(bot):
     """Adds this cog to the bot, meaning that the commands in the Utils class can be used by the bot/users
