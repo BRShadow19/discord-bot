@@ -113,26 +113,15 @@ class Music(commands.Cog):
         await asyncio.sleep(3)
         while self.lq == True:
           while ctx.voice_client.is_playing():
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)
           for songs in islice(cycle(song_queue), len(song_queue) * 100):
-            try:
               player = await YTDL.YTDLSource.from_url(songs, loop=self.bot.loop, stream=True) 
-              ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+              ctx.voice_client.play(player)
               await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
-            except (AttributeError):
-              pass
-            except (TypeError):
-              pass
-            except (UnboundLocalError):
-              pass
-            except (discord.errors.ClientException):
-              pass
-            finally:
-              if ctx.voice_client.is_playing() is None:
-                while ctx.voice_client.is_playing() == True:
-                  await asyncio.sleep(2)
-              else:
-                return None
+              #if ctx.voice_client.is_playing() is None:
+              while ctx.voice_client.is_playing() == True:
+                await asyncio.sleep(2)
+
       else:
         player = await YTDL.YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
         ctx.voice_client.play(player)
@@ -183,6 +172,7 @@ class Music(commands.Cog):
     if ctx.voice_client is not None:
       await ctx.send('See ya next time')
       await ctx.voice_client.disconnect()
+      song_queue.clear()
     else: 
       await ctx.send('Bot is currently not in a voice channel ._.')
   
@@ -283,16 +273,17 @@ class Music(commands.Cog):
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
     """    
-    song_queue.append(self.currentTitle)  # Add the current song back to the end of the queue, otherwise this one will not be repeated
+
+    if len(song_queue) == 0:
+      return await ctx.send("Nothing inside the queue to loop o.o")
     if len(song_queue) > 0:
+      song_queue.append(self.currentTitle)  # Add the current song back to the end of the queue, otherwise this one will not be repeated
       if self.lq == True:
         await ctx.send(":repeat: Stopping repeat")
         self.lq = False
       else:
-        await ctx.send(":repeat: Queue is being `looped!`")
         self.lq = True
-    else:
-      await ctx.send("Nothing inside the queue to loop")
+        await ctx.send(":repeat: Queue is being `looped!`")
 
 
   @commands.command()
