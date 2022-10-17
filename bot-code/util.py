@@ -9,6 +9,7 @@ import YTDLSource as YTDL
 import link_utils
 import datetime
 import random
+import pytz
 
 class Utils(commands.Cog):
 
@@ -73,8 +74,9 @@ class Utils(commands.Cog):
         Args:
             ctx (Obj): Object containing all information about the context of the bot within a Discord server,
                 such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
-        """        
-        await ctx.send(":clock2: *{}*".format(datetime.datetime.now().strftime("%I:%M %p on %A, %b %d")))
+        """
+        current_time = datetime.datetime.now()
+        await ctx.send(":clock2: *{}*".format(current_time.astimezone(pytz.timezone('US/Eastern')).strftime("%I:%M %p on %A, %b %d")))
     
     @commands.command(name = '8ball')
     async def _8ball(self, ctx, *,question = ''):
