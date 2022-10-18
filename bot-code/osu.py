@@ -51,15 +51,28 @@ class osu(commands.Cog):
     async def top(self, ctx, username=''):
         params= await self.get_param()
         headers= await self.get_header()
-        #data = requests.get(f'{API_URL}/users/{username}', params = params,  headers = headers)
         id = await self.get_userid(username)
         response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)
-        performance_stat = ''
-        map_stat = ''
-        pp_stat = 'pp : ' + str(round(response.json()[0].get('pp')))
-        
-        
-        performance_stat += pp_stat
+        pp_stat = str(round(response.json()[0].get('pp'), 2))
+        map_name = response.json()[0].get('beatmapset')['title']
+        diff_name = response.json()[0].get('beatmap')['version']
+        acc_stat = str(round(response.json()[0].get('accuracy') * 100, 2))
+        rank = response.json()[0].get('rank')
+        count_300 = str(response.json()[0].get('statistics')['count_300'])
+        count_100 = str(response.json()[0].get('statistics')['count_100'])
+        count_50 = str(response.json()[0].get('statistics')['count_50'])
+
+
+
+
+
+        performance_stat = str(pp_stat + 'pp' + '\n'
+                             + map_name + ' [' + diff_name + ']' '\n'
+                             + acc_stat + '%' + '\n'
+                             + rank + '\n'
+                             + count_300 + '/' + count_100 + '/' + count_50 + '\n')
+                        
+
         await ctx.send(performance_stat)
 
 async def setup(bot):

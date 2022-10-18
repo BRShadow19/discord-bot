@@ -44,7 +44,11 @@ class Weather(commands.Cog):
             weather = data["weather"]
             desc = weather[0]["description"]
             # Create a Discord Embed object using the gathered info
-            g = discord.Embed(title=":white_sun_cloud: _**{}**_:thunder_cloud_rain:".format(current_city), description="High: *{}°*, Low: *{}°*\nCurrent Temp: **{}°**\nHumidity: **{}%**\nDescription: {}".format(str(temp_max), str(temp_min), str(temp), str(humidity), string.capwords(str(desc))), color=discord.Color.dark_blue()).set_footer(text='For a forecast 6 days in advance -> m!forecast', icon_url='https://i.imgur.com/oWQeUDj.png')
+            g = discord.Embed(title=":white_sun_cloud: _**{}**_:thunder_cloud_rain:".format(current_city), 
+                                description="High: *{}°*, Low: *{}°*\nCurrent Temp: **{}°**\nHumidity: **{}%**\nDescription: {}".format(str(temp_max), 
+                                str(temp_min), str(temp), str(humidity), string.capwords(str(desc))), 
+                                color=discord.Color.dark_blue()).set_footer(text='For a forecast 6 days in advance -> m!forecast', 
+                                icon_url='https://i.imgur.com/oWQeUDj.png')
             await ctx.send(embed=g)
         else:
             await ctx.send(":person_facepalming: That isn't a city :person_facepalming:")
