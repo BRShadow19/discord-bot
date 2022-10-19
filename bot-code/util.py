@@ -38,7 +38,8 @@ class Utils(commands.Cog):
             + '\n`m!joke:` Tells a joke'
             + '\n`m!coinflip:` Flips a coin')
             
-            osu_desc = str('soon :copium:')
+            osu_desc = str('\n***IN PROGRESS***\n`m!top [player name]:` Gives the given user\'s top 5 pp plays'
+            + '\n`m!rs [player name]:` Gives the given user\'s most recent play')
 
             overwatch_desc = str('soon :copium:')
 

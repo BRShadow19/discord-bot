@@ -23,7 +23,7 @@ class osu(commands.Cog):
         response = requests.post(TOKEN_URL, data=data)
 
         return response.json().get('access_token')
-
+    #retrieves header dictionary
     async def get_header(self):
         token = await self.get_token()
         headers = {
@@ -33,47 +33,68 @@ class osu(commands.Cog):
         }
 
         return headers
-
+    #retrieves params dictionary
     async def get_param(self):
         params = {
             'mode' : 'osu',
             'limit' : 5
         }
         return params
+
+    #changes params dictionary, used if user wants to look at a different mode or a different number of plays
+    async def change_param(self, mode, limit):
+        params = {
+            'mode' : mode,
+            'limit' : limit
+        }
+        return params
+    
+    #retrieves the users account ID from their username
     async def get_userid(self, username):
         params= await self.get_param()
         headers= await self.get_header()
         data = requests.get(f'{API_URL}/users/{username}', params = params,  headers = headers)
         return str(data.json().get('id'))
 
-
+    #gives a list of the users top 5 pp plays 
     @commands.command()
     async def top(self, ctx, username=''):
         params= await self.get_param()
         headers= await self.get_header()
         id = await self.get_userid(username)
         response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)
-        pp_stat = str(round(response.json()[0].get('pp'), 2))
-        map_name = response.json()[0].get('beatmapset')['title']
-        diff_name = response.json()[0].get('beatmap')['version']
-        acc_stat = str(round(response.json()[0].get('accuracy') * 100, 2))
-        rank = response.json()[0].get('rank')
-        count_300 = str(response.json()[0].get('statistics')['count_300'])
-        count_100 = str(response.json()[0].get('statistics')['count_100'])
-        count_50 = str(response.json()[0].get('statistics')['count_50'])
-
-
-
-
-
-        performance_stat = str(pp_stat + 'pp' + '\n'
+        performance_stat = ''
+        n = params.get('limit')
+        for i in range(0, n):
+            pp_stat = str(round(response.json()[i].get('pp'), 2))
+            map_name = response.json()[i].get('beatmapset')['title']
+            diff_name = response.json()[i].get('beatmap')['version']
+            acc_stat = str(round(response.json()[i].get('accuracy') * 100, 2))
+            rank = response.json()[i].get('rank')
+            count_300 = str(response.json()[i].get('statistics')['count_300'])
+            count_100 = str(response.json()[i].get('statistics')['count_100'])
+            count_50 = str(response.json()[i].get('statistics')['count_50'])
+            performance_stat += str(str(i + 1) + ') ' + pp_stat + 'pp' + '\n'
                              + map_name + ' [' + diff_name + ']' '\n'
                              + acc_stat + '%' + '\n'
                              + rank + '\n'
                              + count_300 + '/' + count_100 + '/' + count_50 + '\n')
                         
-
+      
         await ctx.send(performance_stat)
+
+    #gives the given users most recent play
+    @commands.command(name = 'rs')
+    async def recent(self, ctx, username = ''):
+        params= await self.get_param()
+        headers= await self.get_header()
+        id = await self.get_userid(username)
+        response = requests.get(f'{API_URL}/users/{id}/recent_activity', params=params, headers=headers)
+        output= ''
+        output += response.json()[0].get('beatmap')['title'] +' \n'
+        output += response.json()[0].get('scoreRank')
+        
+        await ctx.send(output)
 
 async def setup(bot):
   """Adds this cog to the bot, meaning that the commands in the osu class can be used by the bot/users
