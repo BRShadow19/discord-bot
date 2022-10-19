@@ -89,11 +89,27 @@ class osu(commands.Cog):
         params= await self.get_param()
         headers= await self.get_header()
         id = await self.get_userid(username)
-        response = requests.get(f'{API_URL}/users/{id}/recent_activity', params=params, headers=headers)
+        response = requests.get(f'{API_URL}/users/{id}/scores/recent?include_fails=1', params=params, headers=headers)
         output= ''
-        output += response.json()[0].get('beatmap')['title'] +' \n'
-        output += response.json()[0].get('scoreRank')
-        
+        if(len(response.json()) == 0):
+            output += 'No recent plays from `' + username + '`'
+        elif(not response.json()[0].get('passed')):
+            output += 'i currently dont know how to get some stats to show up if you failed so take this : **L**'
+        else:
+            pp_stat = str(round(response.json()[0].get('pp'), 2))
+            map_name = response.json()[0].get('beatmapset')['title']
+            diff_name = response.json()[0].get('beatmap')['version']
+            acc_stat = str(round(response.json()[0].get('accuracy') * 100, 2))
+            rank = response.json()[0].get('rank')
+            count_300 = str(response.json()[0].get('statistics')['count_300'])
+            count_100 = str(response.json()[0].get('statistics')['count_100'])
+            count_50 = str(response.json()[0].get('statistics')['count_50'])
+            output += str(pp_stat + 'pp' + '\n'
+                            + map_name + ' [' + diff_name + ']' '\n'
+                            + acc_stat + '%' + '\n'
+                            + rank + '\n'
+                            + count_300 + '/' + count_100 + '/' + count_50 + '\n')
+
         await ctx.send(output)
 
 async def setup(bot):
