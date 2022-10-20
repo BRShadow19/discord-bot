@@ -3,6 +3,7 @@ import asyncio
 import pafy
 import discord
 import os
+import math
 from discord.ext import commands
 API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'http://osu.ppy.sh/oauth/token'
@@ -110,6 +111,40 @@ class osu(commands.Cog):
                             + rank + '\n'
                             + count_300 + '/' + count_100 + '/' + count_50 + '\n')
 
+        await ctx.send(output)
+
+    @commands.command()
+    async def user(self, ctx, username=''):
+        output =''
+        params= await self.get_param()
+        headers= await self.get_header()
+        id = await self.get_userid(username)
+        response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
+        if(not response.json().get('statistics')['is_ranked']):
+            output += 'This player is currently inactive'
+        else:
+            country_rank = str(response.json().get('statistics')['country_rank'])
+            country = response.json().get('country_code')
+            global_rank = str(response.json().get('statistics')['global_rank'])
+            num_A = str(response.json().get('statistics')['grade_counts']['a'])
+            num_S = str(response.json().get('statistics')['grade_counts']['s'])
+            num_SH = str(response.json().get('statistics')['grade_counts']['sh'])
+            num_SS = str(response.json().get('statistics')['grade_counts']['ss'])
+            num_SSH = str(response.json().get('statistics')['grade_counts']['ssh'])
+            acc = str(round(response.json().get('statistics')['hit_accuracy'], 2))
+            level = str(response.json().get('statistics')['level']['current'])
+            level_prog = str(response.json().get('statistics')['level']['progress'])
+            playcount = str(response.json().get('statistics')['play_count'])
+            time_played_hours = str(math.trunc(response.json().get('statistics')['play_time'] / 3600))
+            time_played_str = str(time_played_hours + ' hours')
+            pp = str(response.json().get('statistics')['pp'])
+            score = str("{:,}".format(response.json().get('statistics')['ranked_score']))
+            maxcombo = str(response.json().get('statistics')['maximum_combo'])
+            output += str('rank : ' + global_rank + ' :globe_with_meridians: ' + country_rank + ' :flag_' + country.lower() + ': \n'
+                            + 'pp : **' + pp + '** accuracy : **' + acc + '** level : ' + level + '.' + level_prog +'\n'
+                            + ' playcount : ' + playcount + ' time played : ' + time_played_str + '\n'
+                            + 'total score : ' + score + ' max combo : ' + maxcombo)
+        
         await ctx.send(output)
 
 async def setup(bot):
