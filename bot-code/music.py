@@ -370,6 +370,8 @@ class Music(commands.Cog):
       await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
       self.currentTitle = player.title
       await self.whileplaying(ctx)
+    else:
+      await self.whileplaying(ctx)
 
 
   """
