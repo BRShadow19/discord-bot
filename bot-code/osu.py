@@ -9,7 +9,7 @@ API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'http://osu.ppy.sh/oauth/token'
 
 class osu(commands.Cog):
-    
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -59,13 +59,24 @@ class osu(commands.Cog):
 
     #gives a list of the users top 5 pp plays 
     @commands.command()
-    async def top(self, ctx, username=''):
+    async def top(self, ctx, username=''): 
+        linked_users = {
+            'AmphibiousBean#8924' : await self.get_userid('amphibiousbean')
+        }
         params= await self.get_param()
         headers= await self.get_header()
-        id = await self.get_userid(username)
-        response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)
         performance_stat = ''
         n = params.get('limit')
+        #if ctx.author not in linked_users.keys():
+        id = await self.get_userid(username)
+        response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)
+        """elif ctx.author not in linked_users.keys() and len(username) == 0:
+            performance_stat += 'no user found, pass a username parameter or link your osu account'
+            await ctx.send(performance_stat)
+            return None
+        else:
+            id = str(linked_users.get(ctx.author))
+            response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)"""
         for i in range(0, n):
             pp_stat = str(round(response.json()[i].get('pp'), 2))
             map_name = response.json()[i].get('beatmapset')['title']
@@ -87,8 +98,13 @@ class osu(commands.Cog):
     #gives the given users most recent play
     @commands.command(name = 'rs')
     async def recent(self, ctx, username = ''):
+        #await ctx.send(ctx.author)
+        linked_users = {
+            'AmphibiousBean#8924' : await self.get_userid('amphibiousbean')
+        }
         params= await self.get_param()
         headers= await self.get_header()
+        #id = str(linked_users.get(ctx.author))
         id = await self.get_userid(username)
         response = requests.get(f'{API_URL}/users/{id}/scores/recent?include_fails=1', params=params, headers=headers)
         output= ''
