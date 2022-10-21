@@ -12,7 +12,7 @@ class osu(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
+        
     async def get_token(self):
         data = {
             'client_id' : os.environ.get('OSU_ID'),
@@ -57,26 +57,38 @@ class osu(commands.Cog):
         data = requests.get(f'{API_URL}/users/{username}', params = params,  headers = headers)
         return str(data.json().get('id'))
 
+    #checks if discord user has their osu user linked
+    async def check_link(self, user):
+        linked_users = {
+            'AmphibiousBean#8924' : await self.get_userid('amphibiousbean'),
+            'ShadowShark19#1345' : await self.get_userid('shadowshark19'),
+            'Toradorable#8947' : await self.get_userid('slayera321')
+        }
+        return user in linked_users.keys()
+
     #gives a list of the users top 5 pp plays 
     @commands.command()
     async def top(self, ctx, username=''): 
         linked_users = {
-            'AmphibiousBean#8924' : await self.get_userid('amphibiousbean')
+            'AmphibiousBean#8924' : await self.get_userid('amphibiousbean'),
+            'ShadowShark19#1345' : await self.get_userid('shadowshark19'),
+            'Toradorable#8947' : await self.get_userid('slayera321')
         }
+        user = str(ctx.author)
         params= await self.get_param()
         headers= await self.get_header()
         performance_stat = ''
         n = params.get('limit')
-        #if ctx.author not in linked_users.keys():
-        id = await self.get_userid(username)
-        response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)
-        """elif ctx.author not in linked_users.keys() and len(username) == 0:
+        if not self.check_link(user) or not len(username) == 0:
+            id = await self.get_userid(username)
+            response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)
+        elif not self.check_link(user) and len(username) == 0:
             performance_stat += 'no user found, pass a username parameter or link your osu account'
             await ctx.send(performance_stat)
             return None
         else:
-            id = str(linked_users.get(ctx.author))
-            response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)"""
+            id = linked_users.get(user)
+            response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)
         for i in range(0, n):
             pp_stat = str(round(response.json()[i].get('pp'), 2))
             map_name = response.json()[i].get('beatmapset')['title']
@@ -97,17 +109,33 @@ class osu(commands.Cog):
 
     #gives the given users most recent play
     @commands.command(name = 'rs')
-    async def recent(self, ctx, username = ''):
-        #await ctx.send(ctx.author)
+    async def recent(self, ctx, username = ''): 
         linked_users = {
-            'AmphibiousBean#8924' : await self.get_userid('amphibiousbean')
+            'AmphibiousBean#8924' : await self.get_userid('amphibiousbean'),
+            'ShadowShark19#1345' : await self.get_userid('shadowshark19'),
+            'Toradorable#8947' : await self.get_userid('slayera321')
         }
+        user = str(ctx.author)
         params= await self.get_param()
         headers= await self.get_header()
-        #id = str(linked_users.get(ctx.author))
-        id = await self.get_userid(username)
-        response = requests.get(f'{API_URL}/users/{id}/scores/recent?include_fails=1', params=params, headers=headers)
         output= ''
+        if user not in linked_users.keys() or not len(username) == 0:
+            id = await self.get_userid(username)
+            username_response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
+            username = username_response.json().get('username')
+            response = requests.get(f'{API_URL}/users/{id}/scores/recent?include_fails=1', params=params, headers=headers)
+           
+        elif user not in linked_users.keys() and len(username) == 0:
+            output += 'no user found, pass a username parameter or link your osu account'
+            await ctx.send(output)
+            return None
+
+        else:
+            id = linked_users.get(user)
+            response = requests.get(f'{API_URL}/users/{id}/scores/recent?include_fails=1', params=params, headers=headers)
+            username_response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
+            username = username_response.json().get('username')
+        
         if(len(response.json()) == 0):
             output += 'No recent plays from `' + username + '`'
         elif(not response.json()[0].get('passed')):
@@ -127,7 +155,9 @@ class osu(commands.Cog):
                             + rank + '\n'
                             + count_300 + '/' + count_100 + '/' + count_50 + '\n')
 
-        await ctx.send(output)
+        g = discord.Embed(title="{}'s recent play".format(username), description=output,color=discord.Color.from_rgb(255, 152, 197))
+                                
+        await ctx.send(embed=g)
 
     @commands.command()
     async def user(self, ctx, username=''):

@@ -39,7 +39,8 @@ class Utils(commands.Cog):
             + '\n`m!coinflip:` Flips a coin')
             
             osu_desc = str('\n***IN PROGRESS***\n`m!top [player name]:` Gives the given user\'s top 5 pp plays'
-            + '\n`m!rs [player name]:` Gives the given user\'s most recent play')
+            + '\n`m!rs [player name]:` Gives the given user\'s most recent play'
+            +'\n`m!user [player name] :` Gives the user\'s profile statistics')
 
             overwatch_desc = str('soon :copium:')
 
