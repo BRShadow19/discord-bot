@@ -4,6 +4,7 @@ import pafy
 import discord
 import os
 import math
+from pprint import pprint
 from discord.ext import commands
 API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'http://osu.ppy.sh/oauth/token'
@@ -135,12 +136,17 @@ class osu(commands.Cog):
             response = requests.get(f'{API_URL}/users/{id}/scores/recent?include_fails=1', params=params, headers=headers)
             username_response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
             username = username_response.json().get('username')
-        
+            beatmap = requests.get(f'{API_URL}/beatmaps/' + str(response.json()[0].get('beatmap')['id']), params=params, headers=headers)
+            
+
         if(len(response.json()) == 0):
             output += 'No recent plays from `' + username + '`'
         elif(not response.json()[0].get('passed')):
             output += 'i currently dont know how to get some stats to show up if you failed so take this : **L**'
         else:
+            avatar = str(response.json().get('avatar_url'))
+            beatmap_cover = beatmap.json().get('beatmapset')['covers']['list']
+            pprint(beatmap_cover)
             pp_stat = str(round(response.json()[0].get('pp'), 2))
             map_name = response.json()[0].get('beatmapset')['title']
             diff_name = response.json()[0].get('beatmap')['version']
@@ -155,7 +161,8 @@ class osu(commands.Cog):
                             + rank + '\n'
                             + count_300 + '/' + count_100 + '/' + count_50 + '\n')
 
-        g = discord.Embed(title="{}'s recent play".format(username), description=output,color=discord.Color.from_rgb(255, 152, 197))
+        g = discord.Embed(title="{}'s recent play".format(username), 
+                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)
                                 
         await ctx.send(embed=g)
 
@@ -169,9 +176,10 @@ class osu(commands.Cog):
         if(not response.json().get('statistics')['is_ranked']):
             output += 'This player is currently inactive'
         else:
-            country_rank = str(response.json().get('statistics')['country_rank'])
+            score = str("{:,}".format(response.json().get('statistics')['ranked_score']))
+            country_rank = str("{:,}".format(response.json().get('statistics')['country_rank']))
             country = response.json().get('country_code')
-            global_rank = str(response.json().get('statistics')['global_rank'])
+            global_rank = str("{:,}".format(response.json().get('statistics')['global_rank']))
             num_A = str(response.json().get('statistics')['grade_counts']['a'])
             num_S = str(response.json().get('statistics')['grade_counts']['s'])
             num_SH = str(response.json().get('statistics')['grade_counts']['sh'])
@@ -180,18 +188,20 @@ class osu(commands.Cog):
             acc = str(round(response.json().get('statistics')['hit_accuracy'], 2))
             level = str(response.json().get('statistics')['level']['current'])
             level_prog = str(response.json().get('statistics')['level']['progress'])
-            playcount = str(response.json().get('statistics')['play_count'])
+            playcount = str("{:,}".format(response.json().get('statistics')['play_count']))
             time_played_hours = str(math.trunc(response.json().get('statistics')['play_time'] / 3600))
             time_played_str = str(time_played_hours + ' hours')
             pp = str(response.json().get('statistics')['pp'])
             score = str("{:,}".format(response.json().get('statistics')['ranked_score']))
             maxcombo = str(response.json().get('statistics')['maximum_combo'])
+            avatar = str(response.json().get('avatar_url'))
             output += str('rank : ' + global_rank + ' :globe_with_meridians: ' + country_rank + ' :flag_' + country.lower() + ': \n'
-                            + 'pp : **' + pp + '** accuracy : **' + acc + '** level : ' + level + '.' + level_prog +'\n'
+                            + 'pp : **' + pp + '** accuracy : **' + acc + '%** level : ' + level + '.' + level_prog +'\n'
                             + ' playcount : ' + playcount + ' time played : ' + time_played_str + '\n'
                             + 'total score : ' + score + ' max combo : ' + maxcombo)
-        
-        await ctx.send(output)
+        g = discord.Embed(title="{}\'s profile".format(username),
+                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=avatar)
+        await ctx.send(embed=g)
 
 async def setup(bot):
   """Adds this cog to the bot, meaning that the commands in the osu class can be used by the bot/users
