@@ -4,7 +4,6 @@ import pafy
 import discord
 import os
 import math
-from pprint import pprint
 from discord.ext import commands
 API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'http://osu.ppy.sh/oauth/token'
@@ -137,31 +136,40 @@ class osu(commands.Cog):
             username_response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
             username = username_response.json().get('username')
             beatmap = requests.get(f'{API_URL}/beatmaps/' + str(response.json()[0].get('beatmap')['id']), params=params, headers=headers)
-            
-
+        
+        #avatar = str(response.json().get('avatar_url'))
+        beatmap_cover = beatmap.json().get('beatmapset')['covers']['list']
+        map_name = response.json()[0].get('beatmapset')['title']
+        diff_name = response.json()[0].get('beatmap')['version']
+        acc_stat = str(round(response.json()[0].get('accuracy') * 100, 2))
+        rank = response.json()[0].get('rank')
+        count_300 = str(response.json()[0].get('statistics')['count_300'])
+        count_100 = str(response.json()[0].get('statistics')['count_100'])
+        count_50 = str(response.json()[0].get('statistics')['count_50'])
+        miss_count = str(response.json()[0].get('statistics')['count_miss'])
+        mods = str(response.json()[0].get('mods'))
+        
         if(len(response.json()) == 0):
-            output += 'No recent plays from `' + username + '`'
-        elif(not response.json()[0].get('passed')):
-            output += 'i currently dont know how to get some stats to show up if you failed so take this : **L**'
-        else:
-            avatar = str(response.json().get('avatar_url'))
-            beatmap_cover = beatmap.json().get('beatmapset')['covers']['list']
-            pprint(beatmap_cover)
-            pp_stat = str(round(response.json()[0].get('pp'), 2))
-            map_name = response.json()[0].get('beatmapset')['title']
-            diff_name = response.json()[0].get('beatmap')['version']
-            acc_stat = str(round(response.json()[0].get('accuracy') * 100, 2))
-            rank = response.json()[0].get('rank')
-            count_300 = str(response.json()[0].get('statistics')['count_300'])
-            count_100 = str(response.json()[0].get('statistics')['count_100'])
-            count_50 = str(response.json()[0].get('statistics')['count_50'])
-            output += str(pp_stat + 'pp' + '\n'
-                            + map_name + ' [' + diff_name + ']' '\n'
-                            + acc_stat + '%' + '\n'
-                            + rank + '\n'
-                            + count_300 + '/' + count_100 + '/' + count_50 + '\n')
 
-        g = discord.Embed(title="{}'s recent play".format(username), 
+            output += 'No recent plays from `' + username + '`'
+
+            g = discord.Embed(title="{}'s recent play".format(username), 
+                            description=output,color=discord.Color.from_rgb(255, 152, 197))
+
+        elif(not response.json()[0].get('passed')):
+
+            output += str('**0pp** - ' + map_name + ' [' + diff_name + '] + ' + mods[2:-2] + '\n'
+                            + rank + ' - ' + acc_stat + '%  ' + count_300 + '/' + count_100 + '/' + count_50 + '/' + miss_count + '\n')
+
+            g = discord.Embed(title="{}'s recent play".format(username), 
+                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)
+        else:
+            pp_stat = str(round(response.json()[0].get('pp'), 2))
+            output += str('**' + pp_stat + 'pp** - ' + map_name + ' [' + diff_name + ']' '\n'
+                            + rank + ' - ' + acc_stat + '%' + '\n'
+                            + count_300 + '/' + count_100 + '/' + count_50 + '/' + miss_count + '\n')
+
+            g = discord.Embed(title="{}'s recent play".format(username), 
                             description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)
                                 
         await ctx.send(embed=g)
