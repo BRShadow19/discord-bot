@@ -20,6 +20,7 @@ class Music(commands.Cog):
     self.currentTitle = ''
     self.skipping = False
     self.lq = False
+    self.queueEmbed = None
 
 
   @commands.command()
@@ -259,10 +260,19 @@ class Music(commands.Cog):
       await ctx.send('Nothing in the queue ._.')
     else:
       message = ""
+      pages = []
+      page = 0
       for i in range(len(song_queue)):
+        if len(pages[page] + (str(i+1) + ". " + song_queue[i] + "\n")) > 4000:
+          pages[page] += (str(i+1) + ". " + song_queue[i] + "\n")
+        else:
+          page += 1
+          pages[page] += (str(i+1) + ". " + song_queue[i] + "\n")
         message += (str(i+1) + ". " + song_queue[i] + "\n")
-        e = discord.Embed(title="__Here's what's in the Queue:__", description=message, color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
-      await ctx.send(embed=e)
+
+      e = discord.Embed(title="__Here's what's in the Queue:__", description=pages[0], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
+      msg = await ctx.send(embed=e)
+      self.queueEmbed = msg
 
 
   @commands.command()
