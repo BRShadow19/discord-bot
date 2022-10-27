@@ -12,6 +12,7 @@ class osu(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.beatmap_id = ''
         
     async def get_token(self):
         data = {
@@ -124,7 +125,8 @@ class osu(commands.Cog):
             username_response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
             username = username_response.json().get('username')
             response = requests.get(f'{API_URL}/users/{id}/scores/recent?include_fails=1', params=params, headers=headers)
-           
+            beatmap = requests.get(f'{API_URL}/beatmaps/' + str(response.json()[0].get('beatmap')['id']), params=params, headers=headers)
+            self.beatmap = str(response.json()[0].get('beatmap')['id'])
         elif user not in linked_users.keys() and len(username) == 0:
             output += 'no user found, pass a username parameter or link your osu account'
             await ctx.send(output)
@@ -136,7 +138,7 @@ class osu(commands.Cog):
             username_response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
             username = username_response.json().get('username')
             beatmap = requests.get(f'{API_URL}/beatmaps/' + str(response.json()[0].get('beatmap')['id']), params=params, headers=headers)
-        
+            self.beatmap = str(response.json()[0].get('beatmap')['id'])
         #avatar = str(response.json().get('avatar_url'))
         beatmap_cover = beatmap.json().get('beatmapset')['covers']['list']
         map_name = response.json()[0].get('beatmapset')['title']
@@ -210,6 +212,23 @@ class osu(commands.Cog):
         g = discord.Embed(title="{}\'s profile".format(username),
                             description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=avatar)
         await ctx.send(embed=g)
+
+    @commands.command()
+    async def beatmap(self, ctx, link=''):
+        params= await self.get_param()
+        headers= await self.get_header()
+        output = ''
+        if(not len(link) == 0):
+            output += 'link'
+        elif (not len(self.beatmap_id) == 0 and len(link) == 0):
+            response = requests.get(f'{API_URL}/beatmaps/' + self.beatmap, params=params, headers=headers)
+            output += 'self.beatmap no link'    
+        else: 
+            output += 'no beatmap linked'
+        
+        await ctx.send(output)
+        
+
 
 async def setup(bot):
   """Adds this cog to the bot, meaning that the commands in the osu class can be used by the bot/users
