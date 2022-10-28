@@ -10,6 +10,7 @@ import link_utils
 import datetime
 import random
 import pytz
+import music
 
 class Utils(commands.Cog):
 
@@ -18,7 +19,34 @@ class Utils(commands.Cog):
         self.answers = ["It is certain", "Outlook good", "You may rely on it ", "Ask again later", 
         "Concentrate and ask again", "Reply hazy, try again", "My reply is no", "My sources say no"]
         self.jokes = ["give me jokes to add please im begging you"]
-        
+
+
+    async def on_reaction_add(self, reaction, user):
+        print("reaction!")
+        id = reaction.message.id
+        music_cog = self.bot.get_cog('Music')
+        queueID = music_cog.queueEmbed.id
+        if id == queueID:
+            # Check which arrow
+            if reaction.emoji.name == ':arrow_right:':
+                # Go right a page
+                if music_cog.currentPage < music_cog.queuePages.length-1:
+                    music_cog.currentPage += 1
+                    e = discord.Embed(title="__Here's what's in the Queue:__", description=music_cog.queuePages[music_cog.currentPage], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(music.song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
+                    await music_cog.queueEmbed.edit(embed=e)
+                    await reaction.remove(user)
+                else:
+                    await reaction.remove(user)
+            if reaction.emoji.name == ':arrow_left:':
+                # Go left a page
+                if music_cog.currentPage > 0:
+                    music_cog.currentPage -= 1
+                    e = discord.Embed(title="__Here's what's in the Queue:__", description=music_cog.queuePages[music_cog.currentPage], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(music.song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
+                    await music_cog.queueEmbed.edit(embed=e)
+                    await reaction.remove(user)
+                else:
+                    await reaction.remove(user)
+               
     @commands.command()
     async def list(self, ctx, *,type = ''):
         """Sends a Discord Embed containing the list of all music commands

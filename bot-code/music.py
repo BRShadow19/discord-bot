@@ -21,6 +21,8 @@ class Music(commands.Cog):
     self.skipping = False
     self.lq = False
     self.queueEmbed = None
+    self.queuePages = []
+    self.currentPage = 0
 
 
   @commands.command()
@@ -260,10 +262,13 @@ class Music(commands.Cog):
       await ctx.send('Nothing in the queue ._.')
     else:
       message = ""
-      pages = []
+      pages = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
       page = 0
       for i in range(len(song_queue)):
-        if len(pages[page] + (str(i+1) + ". " + song_queue[i] + "\n")) > 4000:
+        print(pages[page])
+        print(song_queue[i])
+        print(page)
+        if len(pages[page] + (str(i+1) + ". " + song_queue[i] + "\n")) < 4000:
           pages[page] += (str(i+1) + ". " + song_queue[i] + "\n")
         else:
           page += 1
@@ -273,6 +278,8 @@ class Music(commands.Cog):
       e = discord.Embed(title="__Here's what's in the Queue:__", description=pages[0], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
       msg = await ctx.send(embed=e)
       self.queueEmbed = msg
+      self.queuePages = pages
+      self.currentPage = 0
 
 
   @commands.command()
