@@ -25,8 +25,12 @@ class osu(commands.Cog):
         response = requests.post(TOKEN_URL, data=data)
 
         return response.json().get('access_token')
-    #retrieves header dictionary
+    
     async def get_header(self):
+        """Retrieves the header dictionary
+            Returns:
+                headers: the header dictionary
+        """
         token = await self.get_token()
         headers = {
             'Content-Type' : 'application/json',
@@ -35,31 +39,54 @@ class osu(commands.Cog):
         }
 
         return headers
-    #retrieves params dictionary
+    
     async def get_param(self):
+        """Retrieves the params dictionary
+            Returns:
+                params: the params dictionary
+        """
         params = {
             'mode' : 'osu',
             'limit' : 5
         }
         return params
 
-    #changes params dictionary, used if user wants to look at a different mode or a different number of plays
+
     async def change_param(self, mode, limit):
+        """Can be used to change the values of the params dictionary, which includes the osu! mode and the limit on number of results displayed
+            by the API.
+            Args:
+                mode(str): the osu! mode (currently only supports osu!std)
+                limit(int): the number of results displayed by the API
+            Returns:
+                params: the new params dictionary
+        """
         params = {
             'mode' : mode,
             'limit' : limit
         }
         return params
     
-    #retrieves the users account ID from their username
+    
     async def get_userid(self, username):
+        """Retrieves the user's osu! account ID from their osu! username
+            Args:
+                username(str): the user's osu! username
+            Returns:
+                returns the user's osu! ID
+        """
         params= await self.get_param()
         headers= await self.get_header()
         data = requests.get(f'{API_URL}/users/{username}', params = params,  headers = headers)
         return str(data.json().get('id'))
 
-    #checks if discord user has their osu user linked
     async def check_link(self, user):
+        """Checks if the discord user that input the command has their osu account linked to the bot
+            Args:
+                user(str): the user's discord username and code ex: Username#1234
+            Returns:
+                returns true if the user is in the linked_users dictionary
+        """
         linked_users = {
             'AmphibiousBean#8924' : await self.get_userid('amphibiousbean'),
             'ShadowShark19#1345' : await self.get_userid('shadowshark19'),
@@ -67,9 +94,22 @@ class osu(commands.Cog):
         }
         return user in linked_users.keys()
 
-    #gives a list of the users top 5 pp plays 
+    
     @commands.command()
     async def top(self, ctx, username=''): 
+        """Sends an embedded message that contains a user's top 5 performance plays in osu! standard along with the information for each play:
+            - Beatmap name with difficulty name
+            - performance points
+            - accuracy
+            - rank (SSH, SS, SH, S, A, B, C, D)
+            - number of 300s, 100s, 50s, and misses in a format of 300/100/50/miss
+        Args:
+            ctx (obj): Object containing all information about the context of the bot within a Discord server,
+                such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
+            username(str, optional): The username of the user who's plays are to be displayed. Defaults to ''. 
+        Returns: 
+            None: If the user does not give a username and is not already linked with the bot, the function will return None. 
+        """
         linked_users = {
             'AmphibiousBean#8924' : await self.get_userid('amphibiousbean'),
             'ShadowShark19#1345' : await self.get_userid('shadowshark19'),
@@ -111,6 +151,21 @@ class osu(commands.Cog):
     #gives the given users most recent play
     @commands.command(name = 'rs')
     async def recent(self, ctx, username = ''): 
+        """Sends an embedded message that contains the users most recent submitted play, pass or fail, along with information regarding the play:
+            - Username
+            - Beatmap name with difficulty name
+            - Mods
+            - Performance points
+            - Accuracy
+            - Rank
+            - Number of 300s, 100s, 50s, and misses in the format of 300/100/50/miss
+            Args:
+                ctx (obj): Object containing all information about the context of the bot within a Discord server,
+                    such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
+                username(str, optional): The username of the user who's recent play is to be displayed. Defaults to ''. 
+            Returns:
+                None: If the user does not give a username and is not already linked with the bot, the function will return None.
+        """
         linked_users = {
             'AmphibiousBean#8924' : await self.get_userid('amphibiousbean'),
             'ShadowShark19#1345' : await self.get_userid('shadowshark19'),
@@ -126,7 +181,7 @@ class osu(commands.Cog):
             username = username_response.json().get('username')
             response = requests.get(f'{API_URL}/users/{id}/scores/recent?include_fails=1', params=params, headers=headers)
             beatmap = requests.get(f'{API_URL}/beatmaps/' + str(response.json()[0].get('beatmap')['id']), params=params, headers=headers)
-            self.beatmap = str(response.json()[0].get('beatmap')['id'])
+            self.beatmap_id = str(response.json()[0].get('beatmap')['id'])
         elif user not in linked_users.keys() and len(username) == 0:
             output += 'no user found, pass a username parameter or link your osu account'
             await ctx.send(output)
@@ -138,7 +193,7 @@ class osu(commands.Cog):
             username_response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
             username = username_response.json().get('username')
             beatmap = requests.get(f'{API_URL}/beatmaps/' + str(response.json()[0].get('beatmap')['id']), params=params, headers=headers)
-            self.beatmap = str(response.json()[0].get('beatmap')['id'])
+            self.beatmap_id = str(response.json()[0].get('beatmap')['id'])
         #avatar = str(response.json().get('avatar_url'))
         beatmap_cover = beatmap.json().get('beatmapset')['covers']['list']
         map_name = response.json()[0].get('beatmapset')['title']
@@ -178,6 +233,23 @@ class osu(commands.Cog):
 
     @commands.command()
     async def user(self, ctx, username=''):
+        """Sends an embedded message that contains the profile information and statistics of a given user:
+            - Username
+            - Total ranked score
+            - Rank (global and country)
+            - Profile accuracy
+            - Account level
+            - Total playcount
+            - Time played (in hours)
+            - Total performance points
+            - Maximum combo acheived
+            - Number of SSH, SH, SS, S, and A ranks
+            Args:
+                ctx (obj): Object containing all information about the context of the bot within a Discord server,
+                    such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
+                username(str, optional): The username of the user who's recent play is to be displayed. Defaults to ''. 
+            
+        """
         output =''
         params= await self.get_param()
         headers= await self.get_header()
@@ -202,7 +274,6 @@ class osu(commands.Cog):
             time_played_hours = str(math.trunc(response.json().get('statistics')['play_time'] / 3600))
             time_played_str = str(time_played_hours + ' hours')
             pp = str(response.json().get('statistics')['pp'])
-            score = str("{:,}".format(response.json().get('statistics')['ranked_score']))
             maxcombo = str(response.json().get('statistics')['maximum_combo'])
             avatar = str(response.json().get('avatar_url'))
             output += str('rank : ' + global_rank + ' :globe_with_meridians: ' + country_rank + ' :flag_' + country.lower() + ': \n'
@@ -215,13 +286,28 @@ class osu(commands.Cog):
 
     @commands.command()
     async def beatmap(self, ctx, link=''):
+        """Sends an embedded message that contains information about a given beatmap through either a link that is passed as a parameter or
+            through the self.beatmap_id variable, which takes the beatmap from the most recent use of m!rs as the beatmap.
+            The information displayed will be:
+                - Beatmap name with difficulty name
+                - Star rating
+                - BPM
+                - Mapper name
+                - Ranked status
+                - Playcount
+                - Length
+            Args:
+                ctx(obj): Object containing all information about the context of the bot within a Discord server,
+                    such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
+                link(str): the beatmap link for the beatmap to be shown. Defaults to ''
+        """
         params= await self.get_param()
         headers= await self.get_header()
         output = ''
         if(not len(link) == 0):
             output += 'link'
         elif (not len(self.beatmap_id) == 0 and len(link) == 0):
-            response = requests.get(f'{API_URL}/beatmaps/' + self.beatmap, params=params, headers=headers)
+            response = requests.get(f'{API_URL}/beatmaps/' + self.beatmap_id    , params=params, headers=headers)
             output += 'self.beatmap no link'    
         else: 
             output += 'no beatmap linked'
