@@ -120,10 +120,10 @@ class osu(commands.Cog):
         headers= await self.get_header()
         performance_stat = ''
         n = params.get('limit')
-        if not self.check_link(user) or not len(username) == 0:
+        if not await self.check_link(user) or not len(username) == 0:
             id = await self.get_userid(username)
             response = requests.get(f'{API_URL}/users/{id}/scores/best', params=params, headers=headers)
-        elif not self.check_link(user) and len(username) == 0:
+        elif not await self.check_link(user) and len(username) == 0:
             performance_stat += 'no user found, pass a username parameter or link your osu account'
             await ctx.send(performance_stat)
             return None
@@ -257,6 +257,8 @@ class osu(commands.Cog):
         response = requests.get(f'{API_URL}/users/{id}', params=params, headers=headers)
         if(not response.json().get('statistics')['is_ranked']):
             output += 'This player is currently inactive'
+            g = discord.Embed(title="{}\'s profile".format(username),
+                                description=output,color=discord.Color.from_rgb(255, 152, 197))
         else:
             score = str("{:,}".format(response.json().get('statistics')['ranked_score']))
             country_rank = str("{:,}".format(response.json().get('statistics')['country_rank']))
@@ -280,8 +282,8 @@ class osu(commands.Cog):
                             + 'pp : **' + pp + '** accuracy : **' + acc + '%** level : ' + level + '.' + level_prog +'\n'
                             + ' playcount : ' + playcount + ' time played : ' + time_played_str + '\n'
                             + 'total score : ' + score + ' max combo : ' + maxcombo)
-        g = discord.Embed(title="{}\'s profile".format(username),
-                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=avatar)
+            g = discord.Embed(title="{}\'s profile".format(username),
+                                description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=avatar)
         await ctx.send(embed=g)
 
     @commands.command()
