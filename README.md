@@ -38,6 +38,7 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield-brenden]][linkedin-url-brenden]
 [![LinkedIn][linkedin-shield-devon]][linkedin-url-devon]
+[![LinkedIn][linkedin-shield-gavin]][linkedin-url-gavin]
 
 
 <!-- TABLE OF CONTENTS -->
@@ -228,4 +229,6 @@ Project Link: [https://github.com/brshadow19/discord-bot](https://github.com/brs
 [linkedin-url-brenden]: https://linkedin.com/in/brenden-reim
 [linkedin-shield-devon]: https://img.shields.io/badge/LINKEDIN-Devon-blue?style=for-the-badge
 [linkedin-url-devon]: https://www.linkedin.com/in/devon-tolbert-86a004141/
+[linkedin-shield-gavin]: https://img.shields.io/badge/LINKEDIN-Gavin-blue?style=for-the-badge
+[linkedin-url-gavin]: https://www.linkedin.com/in/gavin-bean-a52376241/
 <!-- [product-screenshot]: images/screenshot.png -->
