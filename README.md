@@ -225,7 +225,7 @@ Project Link: [https://github.com/brshadow19/discord-bot](https://github.com/brs
 [license-shield]: https://img.shields.io/github/license/BRShadow19/discord-bot?style=for-the-badge
 [license-url]: https://github.com/BRShadow19/discord-bot/blob/main/LICENSE
 [linkedin-shield-brenden]: https://img.shields.io/badge/LINKEDIN-Brenden-blue?style=for-the-badge
-[linkedin-url-brenden]: https://linkedin.com/in/brendenreim
+[linkedin-url-brenden]: https://linkedin.com/in/brenden-reim
 [linkedin-shield-devon]: https://img.shields.io/badge/LINKEDIN-Devon-blue?style=for-the-badge
-[linkedin-url-devon]: https://linkedin.com/in/devontolbert
+[linkedin-url-devon]: https://www.linkedin.com/in/devon-tolbert-86a004141/
 <!-- [product-screenshot]: images/screenshot.png -->
