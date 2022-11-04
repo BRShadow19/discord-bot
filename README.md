@@ -115,9 +115,9 @@ To start, make a file called `token.env` within the main directory of the bot co
   * From your developer page, copy the API key and client ID and place them in `token.env` like so:
   ```sh
   # OSU APIv2 secret
-  OSU=****************
+  OSU='****************'
   # OSU APIv2 ID
-  OSU_ID=******
+  OSU_ID='******'
   ```
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
