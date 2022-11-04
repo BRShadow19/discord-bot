@@ -12,7 +12,6 @@ pafy_key = ''
 
 class Music(commands.Cog):
   """This class contains all of the music-related commands for the bot
-
   """
   def __init__(self, bot):
     self.bot = bot
@@ -28,7 +27,6 @@ class Music(commands.Cog):
   @commands.command()
   async def join(self, ctx, *, channel: discord.VoiceChannel):
     """ Makes the bot join or move to the given voice channel
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -49,7 +47,6 @@ class Music(commands.Cog):
     """Plays a song based on what URL is given. Utilizes link_utils.py to determine the type of link, and then uses
     youtube_dl to search for the song on YouTube. This then creates a YTDLSource object that is used by the bot to be 
     streamed in the voice channel.
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -90,7 +87,9 @@ class Music(commands.Cog):
             player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
             # Send a message of what song was added to the queue, as well as the length of the song
-            await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+            message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+            await asyncio.sleep(10)
+            await message.delete()
             self.currentTitle = player.title
         else: # The URL is of a playlist
           if link_type == 'Spotify_Playlist':
@@ -103,39 +102,49 @@ class Music(commands.Cog):
 
   async def whileplaying(self,ctx):
     """ TODO: Devon please document this method since you wrote it, thanks bud 
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
-
     Returns:
         None: If no songs are left in the queue and nothing is playing, this method returns None
     """    
     while len(song_queue) >= 1:
       if ctx.voice_client.is_playing() or self.skipping or ctx.voice_client.is_paused():
-        await asyncio.sleep(3)
+        await asyncio.sleep(2)
         while self.lq == True:
           while ctx.voice_client.is_playing():
             await asyncio.sleep(3)
           for songs in islice(cycle(song_queue), len(song_queue) * 100):
-              player = await YTDL.YTDLSource.from_url(songs, loop=self.bot.loop, stream=True) 
-              ctx.voice_client.play(player)
-              await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
-              #if ctx.voice_client.is_playing() is None:
-              while ctx.voice_client.is_playing() == True:
-                await asyncio.sleep(2)
-
+            player = await YTDL.YTDLSource.from_url(songs, loop=self.bot.loop, stream=True) 
+            ctx.voice_client.play(player)
+            message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+            await asyncio.sleep(10)
+            await message.delete()
+            #if ctx.voice_client.is_playing() is None:
+            while ctx.voice_client.is_playing() == True:
+              await asyncio.sleep(2)
       else:
-        player = await YTDL.YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
-        ctx.voice_client.play(player)
-        await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
-        self.currentTitle = player.title
+        try:
+          player = await YTDL.YTDLSource.from_url(song_queue[0], loop=self.bot.loop, stream=True)
+          ctx.voice_client.play(player)
+          song_queue.pop(0)
+          message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+          await asyncio.sleep(10)
+          await message.delete()
+          self.currentTitle = player.title
+        except TypeError:
+          pass
+        except UnboundLocalError:
+          pass
+        except discord.ClientException:
+          pass
+        except IndexError:
+          pass
 
 
   @commands.command()
   async def stop(self, ctx):
     """Stops the music that is currently playing (if any) and disconnects the bot from the voice channel
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -155,7 +164,6 @@ class Music(commands.Cog):
   @commands.command()
   async def pause(self, ctx):
     """Pauses the audio that is currently playing
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -167,7 +175,6 @@ class Music(commands.Cog):
   @commands.command()
   async def leave(self, ctx):
     """Disconnects the bot from the voice channel if it's currently in one
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -183,7 +190,6 @@ class Music(commands.Cog):
   @commands.command()
   async def np(self,ctx):
     """Sends a message that says what audio is currently playing (if anything is playing)
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -199,7 +205,6 @@ class Music(commands.Cog):
   @commands.command()
   async def duration(self, ctx, player):
     """Sends a message that contains the duration of the current song 
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -228,7 +233,6 @@ class Music(commands.Cog):
   @commands.command()
   async def resume(self, ctx):
     """Resumes the audio that was previously paused
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -239,7 +243,6 @@ class Music(commands.Cog):
   @commands.command()
   async def isPaused(self, ctx):
     """Check to see if there is any audio that is currently paused
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -253,7 +256,6 @@ class Music(commands.Cog):
   @commands.command()
   async def queue(self, ctx):
     """Sends a Discord Embed containing all songs that are currently in the queue
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -285,7 +287,6 @@ class Music(commands.Cog):
   @commands.command()
   async def loop(self,ctx):
     """Has the bot loop (repeat) the queue indefinitely
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -306,7 +307,6 @@ class Music(commands.Cog):
   @commands.command()
   async def clear(self,ctx):
     """Clears all songs from the queue
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -323,7 +323,6 @@ class Music(commands.Cog):
   async def skip(self, ctx):
     """Skip the song that is currently playing. If there is nothing playing, alert the user. If the queue is empty, stop the audio.
     If there are other songs in the queue, play the next one and remove it (or add to the end if )
-
     Args:
         ctx (_type_): _description_
     """    
@@ -348,7 +347,6 @@ class Music(commands.Cog):
   @commands.command()
   async def shuffle(self, ctx):
     """Shuffle the songs that are in the queue
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -360,7 +358,6 @@ class Music(commands.Cog):
   
   async def playlist(self, ctx, link_type, *, url='', songs=[]):
     """Adds all the songs from a playlist to the queue
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -384,8 +381,10 @@ class Music(commands.Cog):
     if not ctx.voice_client.is_playing():
       player = await YTDL.YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
       ctx.voice_client.play(player)
-      await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
+      message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
       self.currentTitle = player.title
+      await asyncio.sleep(10)
+      await message.delete()
       await self.whileplaying(ctx)
     else:
       await self.whileplaying(ctx)
@@ -403,7 +402,6 @@ class Music(commands.Cog):
     """Sets the self.skipping variable to True, which locks out the whilePlaying method from moving to the next song.
     This method is required in order to prevent a rare error when a user sends the skip command at the same time as when
     the whilePlaying method is trying to start the next song.
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -416,11 +414,9 @@ class Music(commands.Cog):
   @play.before_invoke
   async def ensure_voice(self, ctx):
     """Ensures that the bot is in a voice channel before executing the play command.
-
     Args:
         ctx (Obj): Object containing all information about the context of the bot within a Discord server,
           such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
-
     Raises:
         commands.CommandError: If the user who sent the play command is not in a voice channel, this will prevent the 
         play command from executing
@@ -435,7 +431,6 @@ class Music(commands.Cog):
 
 async def setup(bot):
   """Adds this cog to the bot, meaning that the commands in the Music class can be used by the bot/users
-
     Args:
         bot (discord.Bot): The bot object to have the cog added to
     """    
