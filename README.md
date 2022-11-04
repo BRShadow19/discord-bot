@@ -78,10 +78,10 @@ This bot is coded completely in Python with a lot of help from the Discord API w
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This bot can be run either as a set of Python scripts, or in a Docker container. Regardless of your choice, there are some API tokens that you will need in order for the bot to work.
+This bot can be run either as a set of Python scripts, or in a Docker container. Regardless of your choice, there are some API tokens that you will need in order for the bot to work. To start, clone this repository into a local directory on your machine.
 
 ### API Tokens
-To start, make a file called `token.env` within the main directory of the bot code. Now we will start to fill it with our API tokens. If you choose to use Docker, instead enter the API keys in the corresponding spots in `Dockerfile` (for the Dockerfile you should **not put the key values within quotes**, unlike how it is shown below).
+First, make a file called `token.env` within the main directory of the bot code. Now we will start to fill it with our API tokens. If you choose to use Docker, instead enter the API keys in the corresponding spots in `Dockerfile` (for the Dockerfile you should **not put the key values within quotes**, unlike how it is shown below).
 * Discord bot token
   * Follow [these instructions](https://discordpy.readthedocs.io/en/stable/discord.html) to set up a bot account
   * Once your bot is created, grab the token and add it to your `token.env` file like so:
