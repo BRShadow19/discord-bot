@@ -27,6 +27,8 @@
     <a href="https://github.com/brshadow19/discord-bot/issues">Report Bug</a>
     ·
     <a href="https://github.com/brshadow19/discord-bot/issues">Request Feature</a>
+    ·
+    <a href="https://github.com/brshadow19/discord-bot/wiki/Commands">Bot Commands</a>
   </p>
 </div>
 <br />
