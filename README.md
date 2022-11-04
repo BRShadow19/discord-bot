@@ -18,19 +18,18 @@
 <br />
 <div align="center">
 
-  <h3 align="center">Discord Bot</h3>
+  <h2 align="center">Discord Bot</h2>
 
   <p align="center">
     An open-source, multipurpose Discord bot
     <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
+    <!-- <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a> -->
     <a href="https://github.com/brshadow19/discord-bot/issues">Report Bug</a>
     ·
     <a href="https://github.com/brshadow19/discord-bot/issues">Request Feature</a>
   </p>
 </div>
+<br />
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -47,19 +46,15 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <!-- <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul> -->
     </li>
-    <!-- <li>
+    <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#api-tokens">API Tokens</a></li>
+        <li><a href="#running-as-a-python-application">Python Application</a></li>
+        <li><a href="#docker">Docker</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li> -->
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -78,57 +73,87 @@ This bot is coded completely in Python with a lot of help from the Discord API w
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
-<!-- ### Built With
-
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
-
-
-
 <!-- GETTING STARTED -->
-<!-- ## Getting Started
+## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+This bot can be run either as a set of Python scripts, or in a Docker container. Regardless of your choice, there are some API tokens that you will need in order for the bot to work.
 
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
+### API Tokens
+To start, make a file called `token.env` within the main directory of the bot code. Now we will start to fill it with our API tokens. If you choose to use Docker, instead enter the API keys in the corresponding spots in `Dockerfile` (for the Dockerfile you should **not put the key values within quotes**, unlike how it is shown below).
+* Discord bot token
+  * Follow [these instructions](https://discordpy.readthedocs.io/en/stable/discord.html) to set up a bot account
+  * Once your bot is created, grab the token and add it to your `token.env` file like so:
   ```sh
-  npm install npm@latest -g
+  # Discord bot token
+  TOKEN='*********************'
   ```
+* YouTube API key
+  * Follow [these instructions](https://developers.google.com/youtube/registering_an_application) to create a YouTube application and obtain an API key. We will use this for the Pafy module which uses the YouTube API to gather information about playlists.
+  * Copy the API token and add it to `token.env` like so:
+  ```sh
+  # YouTube API key
+  KEY='*********************'
+  ```
+* Weather API key
+  * Follow [these instructions](https://openweathermap.org/appid) to create an OpenWeather account and obtain an API key
+  * Copy the API key and add it to `token.env` like so:
+  ```sh
+  # Weather API key
+  WEATHER='*********************'
+  ```
+* Spotify API key and secret
+  * Follow the first few directions on [Spotify's developer site](https://developer.spotify.com/documentation/web-api/quick-start/) up to "Register Your Application".
+  * Once you create your application, copy the API key and client secret and place them in `token.env` like so:
+  ```sh
+  # Spotify API Key
+  SPOTIFY_ID='*********************'
+  # Spotify API secret
+  SPOTIFY_SECRET='******************'
+  ```
+* osu! API key and client ID
+  * Go to the [osu!api wiki](https://github.com/ppy/osu-api/wiki) and follow their links to request an API key.
+  * From your developer page, copy the API key and client ID and place them in `token.env` like so:
+  ```sh
+  # OSU APIv2 secret
+  OSU=****************
+  # OSU APIv2 ID
+  OSU_ID=******
+  ```
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Installation
+### Running as a Python application
+**In order for audio to work, you will need to install [FFmpeg](https://ffmpeg.org/) on your machine!**
 
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
+Below is a list of Python modules that you will need to install in order for the bot to work properly:
+* [Discord.py](https://discordpy.readthedocs.io/en/stable/intro.html#installing) - Discord API wrapper
+  * There are different instructions based on your OS, so it's best to follow what they recommend
+* [Pafy](https://pypi.org/project/pafy/) - Retrieve YouTube content and metadata
+* [youtube_dl](https://pypi.org/project/youtube_dl/) - YouTube video downloader (used for obtaining audio)
+* [Spotipy](https://pypi.org/project/spotipy/) - Library for interacting with the Spotify API
+* [PyNaCl](https://pypi.org/project/PyNaCl/) - Used by Discord.py
+* [python-dotenv](https://pypi.org/project/python-dotenv/) - Read in environment variables from `token.env`
+* [pytz](https://pypi.org/project/pytz/) - Get accurate time zone information
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/your_username_/Project-Name.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+Now, you should have everything you need for the bot to work. Simply run `__init__.py` to start up the bot!
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+### Docker
+This guide will assume you already have Docker installed and working on your machine. If not, follow [this documentation](https://docs.docker.com/get-started/) to get started with Docker.
+* Build the image
+  ```sh
+  # From inside the root of the bot directory
+  docker build -t containername
+  ```
+* Run the application
+  ```sh
+  docker run -d -it --name=CONTAINER_NAME
+  ```
+And that's it! The bot should be up and running now. You can use
+```sh
+docker attach CONTAINER_NAME
+```
+to attach the container to your terminal and check for any errors. If you have the default keybinds for docker, you can detatch the container by using CTRL+P then CRTL+Q.
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -182,9 +207,9 @@ Don't forget to give the project a star! Thanks again!
 ## License
 
 Distributed under the Apache License 2.0. See `LICENSE` for more information.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
+<br />
+<br />
+<!-- <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 
 <!-- CONTACT -->
@@ -194,8 +219,9 @@ Brenden Reim - brenden@breim.dev
 
 Project Link: [https://github.com/brshadow19/discord-bot](https://github.com/brshadow19/discord-bot)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
+<!-- <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+<br />
+<br />
 
 
 <!-- ACKNOWLEDGMENTS -->

@@ -8,7 +8,7 @@ RUN yes | pip3 install -U discord.py && yes | pip3 install asyncio && yes | pip3
 
 # Discord bot token
 ENV TOKEN=******************************
-# Pafy API key
+# YouTube API key
 ENV KEY=*************************
 # Weather API key
 ENV WEA=***************
