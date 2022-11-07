@@ -23,7 +23,6 @@
   <p align="center">
     An open-source, multipurpose Discord bot
     <br />
-    <!-- <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a> -->
     <a href="https://github.com/brshadow19/discord-bot/issues">Report Bug</a>
     ·
     <a href="https://github.com/brshadow19/discord-bot/issues">Request Feature</a>
@@ -63,7 +62,9 @@
   </ol>
 </details>
 
-
+<div align="center">
+  <img src="images/8ball.png" style="width:380px">
+</div>
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
@@ -79,6 +80,10 @@ This bot is coded completely in Python with a lot of help from the Discord API w
 ## Getting Started
 
 This bot can be run either as a set of Python scripts, or in a Docker container. Regardless of your choice, there are some API tokens that you will need in order for the bot to work. To start, clone this repository into a local directory on your machine.
+
+<div align="center">
+  <img src="images/play.png" style="width:560px">
+</div>
 
 ### API Tokens
 First, make a file called `token.env` within the main directory of the bot code. Now we will start to fill it with our API tokens. If you choose to use Docker, instead enter the API keys in the corresponding spots in `Dockerfile` (for the Dockerfile you should **not put the key values within quotes**, unlike how it is shown below).
@@ -122,6 +127,11 @@ First, make a file called `token.env` within the main directory of the bot code.
   OSU_ID='******'
   ```
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<div align="center">
+  <img src="images/weather.png" style="width:354px">
+</div>
+
 
 ### Running as a Python application
 **In order for audio to work, you will need to install [FFmpeg](https://ffmpeg.org/) on your machine!**
@@ -204,6 +214,10 @@ Don't forget to give the project a star! Thanks again!
 <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 
+
+<div align="center">
+  <img src="images/spotify.png" style="width:729px">
+</div>
 
 <!-- LICENSE -->
 ## License
