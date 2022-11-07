@@ -263,22 +263,23 @@ class Music(commands.Cog):
     if len(song_queue) == 0:
       await ctx.send('Nothing in the queue ._.')
     else:
-      message = ""
-      pages = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-      page = 0
+      pages = []
+      page = ""
+      # Loop through the queue and add up to 20 songs per page
       for i in range(len(song_queue)):
-        print(pages[page])
-        print(song_queue[i])
-        print(page)
-        if len(pages[page] + (str(i+1) + ". " + song_queue[i] + "\n")) < 4000:
-          pages[page] += (str(i+1) + ". " + song_queue[i] + "\n")
+        if (i%20 != 19):
+          page += (str(i+1) + ". " + song_queue[i] + "\n")
+          if (i == len(song_queue)-1):
+            pages.append(page)
         else:
-          page += 1
-          pages[page] += (str(i+1) + ". " + song_queue[i] + "\n")
-        message += (str(i+1) + ". " + song_queue[i] + "\n")
+          page += (str(i+1) + ". " + song_queue[i] + "\n")
+          pages.append(page)
+          page = ""
 
-      e = discord.Embed(title="__Here's what's in the Queue:__", description=pages[0], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
+      e = discord.Embed(title="__Here's what's in the Queue:__", description=pages[0], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(song_queue)), icon_url=ctx.guild.icon).set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
       msg = await ctx.send(embed=e)
+      await msg.add_reaction('⬅️')
+      await msg.add_reaction('➡️')
       self.queueEmbed = msg
       self.queuePages = pages
       self.currentPage = 0

@@ -28,6 +28,7 @@ async def on_ready():
 
 @bot.event
 async def on_reaction_add(reaction, user):
+    if (not user.bot):
         id = reaction.message.id
         music_cog = bot.get_cog('Music')
         queueID = music_cog.queueEmbed.id
@@ -39,7 +40,7 @@ async def on_reaction_add(reaction, user):
                 # Go right a page
                 if music_cog.currentPage < len(music_cog.queuePages)-1:
                     music_cog.currentPage += 1
-                    e = discord.Embed(title="__Here's what's in the Queue:__", description=music_cog.queuePages[music_cog.currentPage], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(music.song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
+                    e = discord.Embed(title="__Here's what's in the Queue:__", description=music_cog.queuePages[music_cog.currentPage], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(music.song_queue)), icon_url=reaction.message.guild.icon).set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
                     await music_cog.queueEmbed.edit(embed=e)
                     await reaction.remove(user)
                 else:
@@ -48,7 +49,7 @@ async def on_reaction_add(reaction, user):
                 # Go left a page
                 if music_cog.currentPage > 0:
                     music_cog.currentPage -= 1
-                    e = discord.Embed(title="__Here's what's in the Queue:__", description=music_cog.queuePages[music_cog.currentPage], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(music.song_queue)), icon_url='https://i.ytimg.com/vi/YNopLDl2OHc/hqdefault.jpg').set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
+                    e = discord.Embed(title="__Here's what's in the Queue:__", description=music_cog.queuePages[music_cog.currentPage], color=discord.Color.orange()).set_footer(text='{} song(s) in line'.format(len(music.song_queue)), icon_url=reaction.message.guild.icon).set_thumbnail(url='https://i.imgur.com/Gu8wmb0.png')
                     await music_cog.queueEmbed.edit(embed=e)
                     await reaction.remove(user)
                 else:
