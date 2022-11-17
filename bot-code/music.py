@@ -53,10 +53,15 @@ class Music(commands.Cog):
         url (str, optional): URL of a YouTube video or playlist, or a Spotify track or playlist. Can also simply be
           the name of a song/video. Defaults to ''.
     """    
+    # Make some variables for the link types (makes things cleaner)
+    s_pl = link_utils.LinkType.Spotify_Playlist
+    spot = link_utils.LinkType.Spotify
+    s_al = link_utils.LinkType.Spotify_Album
+    yt_pl = link_utils.LinkType.YouTube_Playlist
     if len(url) > 0:  # Make sure the user actually gave a URL or song name
       is_playlist = False
       link_type = await link_utils.identify_url(url)  
-      if link_type == 'Spotify' or 'Spotify_Playlist':  # Need to convert Spotify links to a searchable YouTube term
+      if link_type == spot or link_type == s_pl or link_type == s_al:  # Need to convert Spotify links to a searchable YouTube term
         songs = await link_utils.convert_spotify_to_youtube(url)  # List of songs from the Spotify URL (could be just one)
         if len(songs) == 1:
           url = songs[0]
@@ -64,7 +69,7 @@ class Music(commands.Cog):
           is_playlist = True
           url = songs[0]
 
-      if link_type == 'YouTube_Playlist':
+      if link_type == yt_pl:
         is_playlist = True
 
       if ctx.voice_client.is_playing(): # If nothing is playing right now
@@ -76,7 +81,7 @@ class Music(commands.Cog):
           await ctx.send(':white_check_mark: Now in line -> **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
           await self.whileplaying(ctx)
         else: # The URL is of a playlist
-          if link_type == 'Spotify_Playlist':
+          if link_type == s_pl or link_type == s_al:
             await self.playlist(ctx, link_type, songs=songs)  # Add the Spotify songs to the queue
           else:
             await self.playlist(ctx, link_type, url=url)  # Add the YouTube playlist songs to the queue
@@ -92,7 +97,7 @@ class Music(commands.Cog):
             await message.delete()
             self.currentTitle = player.title
         else: # The URL is of a playlist
-          if link_type == 'Spotify_Playlist':
+          if link_type == s_pl or link_type == s_al:
             await self.playlist(ctx, link_type, songs=songs)  # Add the Spotify songs to the queue
           else:
             await self.playlist(ctx, link_type, url=url)  # Add the YouTube playlist songs to the queue
@@ -366,7 +371,7 @@ class Music(commands.Cog):
         link_type (str): Says whether the link is for a YouTube playlist, or a Spotify playlist
     """    
     await ctx.send(':musical_note: Gathering playlist, please hold :musical_note:')
-    if link_type == link_utils.LinkType.Spotify_Playlist:
+    if link_type == link_utils.LinkType.Spotify_Playlist or link_type == link_utils.LinkType.Spotify_Album:
       for song in songs:  
         song_queue.append(song)
       await ctx.send("{} songs have been added to the queue!".format(len(songs)))

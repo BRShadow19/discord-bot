@@ -17,6 +17,7 @@ except:
 class LinkType():
     Spotify = 'Spotify'
     Spotify_Playlist = 'Spotify_Playlist'
+    Spotify_Album = 'Spotify_Album'
     YouTube = 'YouTube'
     YouTube_Playlist = 'YouTube_Playlist'
     Unknown = "Unknown"
@@ -46,7 +47,9 @@ async def identify_url(url):
     
     elif 'https://open.spotify.com/playlist' in url:
         ret = LinkType.Spotify_Playlist
-    
+    elif 'https://open.spotify.com/album' in url:
+        ret = LinkType.Spotify_Album
+
     return ret
 
 """
@@ -82,6 +85,16 @@ async def convert_spotify_to_youtube(url):
             artist = data['artists'][0]['name']
             title = data['name']
             songs.append(title + ' by ' + artist)
+        
+        elif link_type == LinkType.Spotify_Album:
+            # Dictionary from the Spotify API containing all info about the album
+            data = sp_api.album_tracks(album_id=url)
+            album = data['items']
+            # Collect each track and artist's name, append it to the list of songs
+            for track in album:
+                song = track['name']
+                artist = track['artists'][0]['name']
+                songs.append(song + ' by ' + artist)        
 
     return songs
 
