@@ -206,29 +206,30 @@ class osu(commands.Cog):
         miss_count = str(response.json()[0].get('statistics')['count_miss'])
         mods = str(response.json()[0].get('mods'))
         
-        if(len(response.json()) == 0):
+        if(len(response.json()) == 0): #If the user doesn't have any recent plays to display
 
             output += 'No recent plays from `' + username + '`'
 
-            g = discord.Embed(title="{}'s recent play".format(username), 
-                            description=output,color=discord.Color.from_rgb(255, 152, 197))
-
-        elif(not response.json()[0].get('passed')):
-
+        elif(not response.json()[0].get('passed')): #If user did not pass the map, it will not display a pp value (yet)
+                                                    #ideally want to implement pp-at-point-of-fail number later
             output += str('**0pp** - ' + map_name + ' [' + diff_name + '] + ' + mods[2:-2] + '\n'
                             + rank + ' - ' + acc_stat + '%  ' + count_300 + '/' + count_100 + '/' + count_50 + '/' + miss_count + '\n')
 
-            g = discord.Embed(title="{}'s recent play".format(username), 
-                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)
+            
+        elif(response.json()[0].get('pp') is None): #If the pp value in the API is none, it will not show a pp value (yet) 
+                                                    #typically because user did not set a new high score            
+            output += str('**0pp** - ' + map_name + ' [' + diff_name + ']' '\n'
+                            + rank + ' - ' + acc_stat + '%' + '\n'
+                            + count_300 + '/' + count_100 + '/' + count_50 + '/' + miss_count + '\n')
+
         else:
             pp_stat = str(round(response.json()[0].get('pp'), 2))
             output += str('**' + pp_stat + 'pp** - ' + map_name + ' [' + diff_name + ']' '\n'
                             + rank + ' - ' + acc_stat + '%' + '\n'
                             + count_300 + '/' + count_100 + '/' + count_50 + '/' + miss_count + '\n')
 
-            g = discord.Embed(title="{}'s recent play".format(username), 
-                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)
-                                
+        g = discord.Embed(title="{}'s recent play".format(username), 
+                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)                   
         await ctx.send(embed=g)
 
     @commands.command()
