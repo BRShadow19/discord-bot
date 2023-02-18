@@ -206,29 +206,30 @@ class osu(commands.Cog):
         miss_count = str(response.json()[0].get('statistics')['count_miss'])
         mods = str(response.json()[0].get('mods'))
         
-        if(len(response.json()) == 0):
+        if(len(response.json()) == 0): #If the user doesn't have any recent plays to display
 
             output += 'No recent plays from `' + username + '`'
 
-            g = discord.Embed(title="{}'s recent play".format(username), 
-                            description=output,color=discord.Color.from_rgb(255, 152, 197))
-
-        elif(not response.json()[0].get('passed')):
-
+        elif(not response.json()[0].get('passed')): #If user did not pass the map, it will not display a pp value (yet)
+                                                    #ideally want to implement pp-at-point-of-fail number later
             output += str('**0pp** - ' + map_name + ' [' + diff_name + '] + ' + mods[2:-2] + '\n'
                             + rank + ' - ' + acc_stat + '%  ' + count_300 + '/' + count_100 + '/' + count_50 + '/' + miss_count + '\n')
 
-            g = discord.Embed(title="{}'s recent play".format(username), 
-                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)
+            
+        elif(response.json()[0].get('pp') is None): #If the pp value in the API is none, it will not show a pp value (yet) 
+                                                    #typically because user did not set a new high score            
+            output += str('**0pp** - ' + map_name + ' [' + diff_name + ']' '\n'
+                            + rank + ' - ' + acc_stat + '%' + '\n'
+                            + count_300 + '/' + count_100 + '/' + count_50 + '/' + miss_count + '\n')
+
         else:
             pp_stat = str(round(response.json()[0].get('pp'), 2))
             output += str('**' + pp_stat + 'pp** - ' + map_name + ' [' + diff_name + ']' '\n'
                             + rank + ' - ' + acc_stat + '%' + '\n'
                             + count_300 + '/' + count_100 + '/' + count_50 + '/' + miss_count + '\n')
 
-            g = discord.Embed(title="{}'s recent play".format(username), 
-                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)
-                                
+        g = discord.Embed(title="{}'s recent play".format(username), 
+                            description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=beatmap_cover)                   
         await ctx.send(embed=g)
 
     @commands.command()
@@ -292,12 +293,15 @@ class osu(commands.Cog):
             through the self.beatmap_id variable, which takes the beatmap from the most recent use of m!rs as the beatmap.
             The information displayed will be:
                 - Beatmap name with difficulty name
+                - Difficulty stats (OD, AR, CS)
+                - Circle/Slider/Spinner count
                 - Star rating
                 - BPM
                 - Mapper name
                 - Ranked status
                 - Playcount
                 - Length
+                - Max combo
             Args:
                 ctx(obj): Object containing all information about the context of the bot within a Discord server,
                     such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
@@ -310,11 +314,38 @@ class osu(commands.Cog):
             output += 'link'
         elif (not len(self.beatmap_id) == 0 and len(link) == 0):
             response = requests.get(f'{API_URL}/beatmaps/' + self.beatmap_id    , params=params, headers=headers)
-            output += 'self.beatmap no link'    
+            #output += 'self.beatmap no link'    
         else: 
             output += 'no beatmap linked'
         
-        await ctx.send(output)
+        od = str(response.json().get('accuracy'))
+        ar = str(response.json().get('ar'))
+        cs = str(response.json().get('cs'))
+        bpm = str(response.json().get('beatmapset')['bpm'])
+        title = response.json().get('beatmapset')['title']
+        artist = response.json().get('beatmapset')['artist']
+        ranked_status = response.json().get('status')
+        max_combo = str(response.json().get('max_combo'))
+        star_rating = str(response.json().get('difficulty_rating'))
+        circle_count = str(response.json().get('count_circles'))
+        slider_count = str(response.json().get('count_sliders'))
+        spinner_count = str(response.json().get('count_spinners'))
+        playcount = str(response.json().get('playcount'))
+        lengthRemainder = str(response.json().get('total_length') % 60)
+        lengthMinutes = str(response.json().get('total_length') // 60)
+        length = str(lengthMinutes + ':' + lengthRemainder)
+        backgroundURL = response.json().get('beatmapset')['covers']['card']
+        output += str(od + ' ' + ar + ' ' + cs + ' ' + bpm + ' ' + title + ' ' + artist + ' ' + ranked_status + ' ' + max_combo + ' ' 
+                        + star_rating + ' ' + circle_count + '/' + slider_count + '/' + spinner_count + ' ' + playcount + ' ' + length)
+                        
+        g = discord.Embed(description=output,color=discord.Color.from_rgb(255, 152, 197)).set_thumbnail(url=backgroundURL)
+                                
+        await ctx.send(embed=g)
+
+
+
+
+        
         
 
 
