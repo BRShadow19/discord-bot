@@ -58,23 +58,26 @@ class Music(commands.Cog):
     spot = link_utils.LinkType.Spotify
     s_al = link_utils.LinkType.Spotify_Album
     yt_pl = link_utils.LinkType.YouTube_Playlist
+    other = link_utils.LinkType.Unknown
     if len(url) > 0:  # Make sure the user actually gave a URL or song name
       is_playlist = False
-      link_type = await link_utils.identify_url(url)  
-      if link_type == spot or link_type == s_pl or link_type == s_al:  # Need to convert Spotify links to a searchable YouTube term
+      link_type = await link_utils.identify_url(url) 
+      if link_type == other:  # If the url is not an actual link, generate a url
+        url = await link_utils.generate_url(url)
+      elif link_type == spot or link_type == s_pl or link_type == s_al:  # Need to convert Spotify links to a searchable YouTube term
         songs = await link_utils.convert_spotify_to_youtube(url)  # List of songs from the Spotify URL (could be just one)
         if len(songs) == 1:
-          url = songs[0]
+          url = await link_utils.generate_url(songs[0])
         if len(songs) > 1:
           is_playlist = True
-          url = songs[0]
-
-      if link_type == yt_pl:
+          url = await link_utils.generate_url(songs[0])
+      elif link_type == yt_pl:
         is_playlist = True
 
       if ctx.voice_client.is_playing(): # If nothing is playing right now
         if not is_playlist:
           # Use youtube_dl to search for the video and create a YTDLSource object
+          
           player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
           song_queue.append(player.title)
           # Send a message of what song was added to the queue, as well as the length of the song
@@ -89,6 +92,7 @@ class Music(commands.Cog):
         if not is_playlist:   
           async with ctx.typing():
             # Use youtube_dl to search for the video and create a YTDLSource object
+            #url = await link_utils.generate_url(url)
             player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
             # Send a message of what song was added to the queue, as well as the length of the song
@@ -120,7 +124,8 @@ class Music(commands.Cog):
           while ctx.voice_client.is_playing():
             await asyncio.sleep(3)
           for songs in islice(cycle(song_queue), len(song_queue) * 100):
-            player = await YTDL.YTDLSource.from_url(songs, loop=self.bot.loop, stream=True) 
+            url = await link_utils.generate_url(songs)
+            player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True) 
             ctx.voice_client.play(player)
             message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
             await asyncio.sleep(10)
@@ -130,7 +135,8 @@ class Music(commands.Cog):
               await asyncio.sleep(2)
       else:
         try:
-          player = await YTDL.YTDLSource.from_url(song_queue[0], loop=self.bot.loop, stream=True)
+          url = await link_utils.generate_url(song_queue[0])
+          player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
           ctx.voice_client.play(player)
           song_queue.pop(0)
           message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
@@ -344,7 +350,8 @@ class Music(commands.Cog):
     if len(song_queue) >= 1:
       ctx.voice_client.stop()
       await ctx.send(':track_next: Skipping song :track_next: please hold :track_next:')
-      player = await YTDL.YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
+      url = await link_utils.generate_url(song_queue.pop(0))
+      player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
       ctx.voice_client.play(player)
       await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
     self.skipping = False
@@ -385,7 +392,8 @@ class Music(commands.Cog):
 
     await self.ensure_voice(ctx)
     if not ctx.voice_client.is_playing():
-      player = await YTDL.YTDLSource.from_url(song_queue.pop(0), loop=self.bot.loop, stream=True)
+      url = await link_utils.generate_url(song_queue.pop(0))
+      player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
       ctx.voice_client.play(player)
       message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
       self.currentTitle = player.title

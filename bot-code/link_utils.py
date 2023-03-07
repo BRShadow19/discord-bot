@@ -1,6 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
+from youtube_search import YoutubeSearch as yts
 
 try:
     # Obtain the Spotify API tokens from our environment variables
@@ -98,3 +99,17 @@ async def convert_spotify_to_youtube(url):
 
     return songs
 
+
+async def generate_url(title):
+    """ Generate a YouTube video URL based on a given title
+
+    Args:
+        title (str): Title of the song to search for
+
+    Returns:
+        str: A proper YouTube URL of the top search result for the song
+    """
+    results = yts(title, max_results=1).to_dict()
+    id = results[0]['id']
+    url = "https://www.youtube.com/?v=" + id
+    return url

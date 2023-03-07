@@ -12,7 +12,7 @@ import weather
 import util
 import osu
 
-bot_command_prefix = 'm!'
+bot_command_prefix = 'm?'
 bot_description = 'A simple music bot'
 
 # Create our bot object
