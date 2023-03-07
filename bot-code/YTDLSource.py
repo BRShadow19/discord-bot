@@ -1,9 +1,9 @@
 import discord
 import asyncio
-import yt_dlp
+import youtube_dl
 
 # Suppress noise about console usage from errors
-yt_dlp.utils.bug_reports_message = lambda: ''
+youtube_dl.utils.bug_reports_message = lambda: ''
 
 ffmpeg_options = {
     'options': '-vn'
@@ -24,7 +24,7 @@ ytdl_format_options = {
     'youtube_include_dash-manifest': False
 }
 
-ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
