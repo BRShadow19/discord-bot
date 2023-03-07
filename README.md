@@ -145,6 +145,7 @@ Below is a list of Python modules that you will need to install in order for the
 * [PyNaCl](https://pypi.org/project/PyNaCl/) - Used by Discord.py
 * [python-dotenv](https://pypi.org/project/python-dotenv/) - Read in environment variables from `token.env`
 * [pytz](https://pypi.org/project/pytz/) - Get accurate time zone information
+* [youtube-search](https://pypi.org/project/youtube-search/) - Used to generate YouTube links from a given title
 
 Now, you should have everything you need for the bot to work. Simply run `__init__.py` to start up the bot!
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
