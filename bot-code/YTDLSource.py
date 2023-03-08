@@ -6,7 +6,9 @@ import youtube_dl
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 ffmpeg_options = {
-    'options': '-vn'
+    'options': '-vn',
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
+
 }
 
 ytdl_format_options = {
