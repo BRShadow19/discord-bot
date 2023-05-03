@@ -16,27 +16,30 @@ class league(commands.Cog):
     @commands.command("lolmastery")
     async def mastery(self, ctx, *, summoner_name=""):
         if len(summoner_name) > 0:
-            # Spaces must be "%20" in a URL
-            input = summoner_name.split("$")
-            summoner = input[0].replace(" ", "%20") 
-            count = input[1]
-            url = self.gameAPI_url + "/mastery/" + summoner+"/"+count
-            response = requests.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                name = input[0]
-                embed = discord.Embed(title=":fire: Highest Champion Mastery :fire:", description=name,
-                                      color=discord.Color.gold())
-                data = dict(sorted(data.items(), key=self.sort_by_mastery, reverse=True))
-                for champion in data:
-                    level = str(data[champion][0])
-                    points = str(data[champion][1])
-                    embed.add_field(name=champion, value="M"+level+"     "+points+" pts", inline=False)
-                await ctx.send(embed=embed)
+            if "$" in summoner_name:
+                # Spaces must be "%20" in a URL
+                input = summoner_name.split("$")
+                summoner = input[0].replace(" ", "%20") 
+                count = input[1]
+                url = self.gameAPI_url + "/mastery/" + summoner+"/"+count
+                response = requests.get(url)
+                if response.status_code == 200:
+                    data = response.json()
+                    name = input[0]
+                    embed = discord.Embed(title=":fire: Highest Champion Mastery :fire:", description=name,
+                                        color=discord.Color.gold())
+                    data = dict(sorted(data.items(), key=self.sort_by_mastery, reverse=True))
+                    for champion in data:
+                        level = str(data[champion][0])
+                        points = str(data[champion][1])
+                        embed.add_field(name=champion, value="M"+level+"     "+points+" pts", inline=False)
+                    await ctx.send(embed=embed)
+                else:
+                    await ctx.send("Looks like you sent a summoner name that doesn't exist... or there is a server issue")
             else:
-                await ctx.send("Looks like you sent a summoner name that doesn't exist... or there is a server issue")
+                await ctx.send("Try again, make sure to enter a number of champions.  Ex: ShadowShark19 $5")
         else: 
-            await ctx.send("To use this command, enter a summoner name and the number of champions, with a '$' before the number. Ex: ShadowShark19 $5")
+            await ctx.send("To use this command, enter a summoner name and the number of champions, with a '$' before the number.  Ex: ShadowShark19 $5")
 
 
 async def setup(bot, url):
