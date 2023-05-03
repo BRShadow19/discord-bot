@@ -336,7 +336,8 @@ class Music(commands.Cog):
     """Skip the song that is currently playing. If there is nothing playing, alert the user. If the queue is empty, stop the audio.
     If there are other songs in the queue, play the next one and remove it (or add to the end if )
     Args:
-        ctx (_type_): _description_
+        ctx (Obj): Object containing all information about the context of the bot within a Discord server,
+          such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
     """    
     if ctx.voice_client.is_playing() == False:
       await ctx.send('Nothing is playing..')
