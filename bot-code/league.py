@@ -132,10 +132,15 @@ class league(commands.Cog):
                             did_win = match["win"]
                             kda = match["KDA"]
                             champion = match["championName"]
+                            multikill = match["largestMultikill"]
+                            queue_type = match["queueType"]
+                            largest_kill = ""
+                            if multikill >= 3:
+                                largest_kill = "\n"+match["multikillType"]
                             if did_win:
-                                embed.add_field(name="Match "+match_number+": Victory!", value="Champion: "+champion+"\nK/D/A: "+kda, inline=False)
+                                embed.add_field(name=":green_circle: Match "+match_number+": Victory!", value=queue_type+"\nChampion: "+champion+"\nK/D/A: "+kda+largest_kill, inline=False)
                             else: 
-                                embed.add_field(name="Match "+match_number+": Defeat!", value="Champion: "+champion+"\nK/D/A: "+kda, inline=False)
+                                embed.add_field(name=":red_circle: Match "+match_number+": Defeat!", value=queue_type+"\nChampion: "+champion+"\nK/D/A: "+kda+largest_kill, inline=False)
                             embed.set_footer(text="For detailed info on a match -> m!lolmatch")
                         await ctx.send(embed=embed)
                     else:
@@ -174,27 +179,30 @@ class league(commands.Cog):
                         match = data[0]
                         name = input[0]
                         did_win = match["win"]
+                        queue_type = match["queueType"]
                         if did_win:
-                            embed = discord.Embed(title=":crossed_swords: Detailed Stats for Match "+start+" (Victory) :crossed_swords:", description=name,
+                            embed = discord.Embed(title=":crossed_swords: Detailed Stats for Match "+start+" (Victory) :crossed_swords:", description=name+"\n"+queue_type,
                                                 color=discord.Color.gold())
                         else:
-                            embed = discord.Embed(title=":crossed_swords: Detailed Stats for Match "+start+" (Defeat) :crossed_swords:", description=name,
+                            embed = discord.Embed(title=":crossed_swords: Detailed Stats for Match "+start+" (Defeat) :crossed_swords:", description=name+"\n"+queue_type,
                                                 color=discord.Color.gold())
                         kda = match["KDA"]
                         champion = match["championName"]
                         cs = match["CS"]
                         cs_per_min = match["CS/min"]
                         champion_damage = match["championDamage"]
+                        damage_per_minute = match["damage/min"]
                         duration = match["duration"]
                         gold = match["goldEarned"]
+                        gold_per_minute = match["gold/min"]
                         self_mit_damage = match["selfMitigatedDamage"]
                         vision_score = match["visionScore"]
                         embed.add_field(name="Match Duration", value=duration, inline=False)
                         embed.add_field(name="Champion", value=champion, inline=False)
                         embed.add_field(name="K/D/A", value=kda, inline=False)
                         embed.add_field(name="CS", value="Total CS: "+cs+"\nCS/min: "+cs_per_min, inline=False)
-                        embed.add_field(name="Damage to Champions", value=champion_damage, inline=False)
-                        embed.add_field(name="Gold Earned", value=gold, inline=False)
+                        embed.add_field(name="Damage to Champions", value="Total Damage: "+champion_damage+"\nDamage/min: "+damage_per_minute, inline=False)
+                        embed.add_field(name="Gold Earned", value="Total Gold: "+gold+"\nGold/min: "+gold_per_minute, inline=False)
                         embed.add_field(name="Self-Mitigated Damage", value=self_mit_damage, inline=False)
                         embed.add_field(name="Vision Score", value=vision_score, inline=False)
                         embed.set_footer(text="To view multiple matches -> m!lolmatches")
