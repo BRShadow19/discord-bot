@@ -197,9 +197,13 @@ class league(commands.Cog):
                         gold_per_minute = match["gold/min"]
                         self_mit_damage = match["selfMitigatedDamage"]
                         vision_score = match["visionScore"]
+                        multikill = match["largestMultikill"]
+                        largest_kill = ""
+                        if multikill >= 3:
+                            largest_kill = "\n"+match["multikillType"]
                         embed.add_field(name="Match Duration", value=duration, inline=False)
                         embed.add_field(name="Champion", value=champion, inline=False)
-                        embed.add_field(name="K/D/A", value=kda, inline=False)
+                        embed.add_field(name="K/D/A", value=kda+largest_kill, inline=False)
                         embed.add_field(name="CS", value="Total CS: "+cs+"\nCS/min: "+cs_per_min, inline=False)
                         embed.add_field(name="Damage to Champions", value="Total Damage: "+champion_damage+"\nDamage/min: "+damage_per_minute, inline=False)
                         embed.add_field(name="Gold Earned", value="Total Gold: "+gold+"\nGold/min: "+gold_per_minute, inline=False)
