@@ -15,7 +15,7 @@ import league
 # Change this when GameAPI is running in a container
 GAMEAPI_URL = "http://127.0.0.1:5000"
 
-bot_command_prefix = 'm!'
+bot_command_prefix = 'm?'
 bot_description = 'A simple music bot'
 
 # Create our bot object
