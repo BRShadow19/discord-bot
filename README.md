@@ -155,7 +155,7 @@ This guide will assume you already have Docker installed and working on your mac
 * Build the image
   ```sh
   # From inside the root of the bot directory
-  docker build -t containername
+  docker build -t containername .
   ```
 * Run the application
   ```sh
