@@ -387,8 +387,9 @@ class Music(commands.Cog):
     elif link_type == link_utils.LinkType.YouTube_Playlist:
       playlist = pafy.get_playlist2(url)
       for song in playlist:
-        title = song.title
-        song_queue.append(title)
+        id = song.videoid
+        song_url = "https://www.youtube.com/?v=" + id
+        song_queue.append(song_url)
       await ctx.send("{} songs have been added to the queue!".format(len(playlist)))
 
     await self.ensure_voice(ctx)
