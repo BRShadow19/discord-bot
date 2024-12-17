@@ -140,7 +140,7 @@ Below is a list of Python modules that you will need to install in order for the
 * [Discord.py](https://discordpy.readthedocs.io/en/stable/intro.html#installing) - Discord API wrapper
   * There are different instructions based on your OS, so it's best to follow what they recommend
 * [Pafy](https://pypi.org/project/pafy/) - Retrieve YouTube content and metadata
-* [youtube_dl](https://pypi.org/project/youtube_dl/) - YouTube video downloader (used for obtaining audio)
+* [yt_dlp](https://github.com/yt-dlp/yt-dlp) - YouTube video downloader (used for obtaining audio)
 * [Spotipy](https://pypi.org/project/spotipy/) - Library for interacting with the Spotify API
 * [PyNaCl](https://pypi.org/project/PyNaCl/) - Used by Discord.py
 * [python-dotenv](https://pypi.org/project/python-dotenv/) - Read in environment variables from `token.env`
