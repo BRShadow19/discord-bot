@@ -11,6 +11,7 @@ import datetime
 import random
 import pytz
 import music
+import time
 
 class Utils(commands.Cog):
 
@@ -19,6 +20,7 @@ class Utils(commands.Cog):
         self.answers = ["It is certain", "Outlook good", "You may rely on it ", "Ask again later", 
         "Concentrate and ask again", "Reply hazy, try again", "My reply is no", "My sources say no"]
         self.jokes = ["give me jokes to add please im begging you"]
+        self.start_time = time.time()
         
                
     @commands.command()
@@ -30,7 +32,7 @@ class Utils(commands.Cog):
             such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
         """    
         if(len(type) == 0):
-            await ctx.reply('m!list options are `weather` `music` `general`' 
+            await ctx.reply('m!list options are `weather` `music` `general` `league` `osu` `overwatch` `dev`' 
                             +'\nexample: `m!list music`')
         else:
             type.lower()
@@ -62,10 +64,13 @@ class Utils(commands.Cog):
             +'\n`m!shuffle:` Shuffles the queue'
             +'\n`m!clear:` Clears the queue' 
             +'\n`m!np:` Displays the current song')
+
+            dev_desc = str('\n`m!uptime:` Displays bot uptime and the date and time of last start')
+            
             help_dictionary = {'general': general_desc, 'osu': osu_desc, 'overwatch': overwatch_desc, 
-                                'league': league_desc, 'weather': weather_desc, 'music': music_desc}
+                                'league': league_desc, 'weather': weather_desc, 'music': music_desc, 'dev' : dev_desc}
             if(not type in help_dictionary.keys()):
-                await ctx.reply('m!list options are `weather` `music` `general`' 
+                await ctx.reply('m!list options are `weather` `music` `general` `league` `osu` `overwatch` `dev`' 
                             +'\nexample: `m!list music`')
             else:
                 e = discord.Embed(title="__List of Commands:__", description=help_dictionary[type], color=discord.Color.blue()). set_thumbnail(url='https://i.imgur.com/txfgXAE.png')
@@ -99,6 +104,22 @@ class Utils(commands.Cog):
     async def joke(self, ctx):
         index = random.randint(0, len(self.jokes) - 1)
         await ctx.reply(self.jokes[index])
+
+    @commands.command()
+    async def uptime(self, ctx):
+
+        uptime = datetime.timedelta(time.time() - self.start_time)
+
+        start = datetime.datetime.fromtimestamp(self.start_time)
+
+        if start.microsecond >= 500000:
+            start = start + datetime.timedelta(seconds=1)
+        start = start.replace(microsecond=0)
+
+        g = discord.Embed(description="Started at : ```" + str(start) + "\n```Current uptime : ```" + str(uptime) + "```")        
+        await ctx.send(embed=g)
+        
+
 
 async def setup(bot):
     """Adds this cog to the bot, meaning that the commands in the Utils class can be used by the bot/users

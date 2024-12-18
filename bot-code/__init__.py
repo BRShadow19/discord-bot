@@ -5,6 +5,7 @@ import asyncio
 import os
 import itertools
 import random
+import time
 
 load_dotenv('token.env')    # Load environment variables from token.env
 token = os.environ.get('TOKEN')     # The Discord API bot token
@@ -36,6 +37,12 @@ shutup = ["stfu", "shut up", "shut the fuck up", "shush", "silence"]
 bot_word = ["bot", "mctaco", "mctaco bot", "mctacobot"]
 combos = list(itertools.product(shutup, bot_word))
 phrases = [" ".join(tup) for tup in combos]
+
+#on_message cooldown timers
+#time.time() gives the time in seconds since epoch (January 1st, 1970), so the cooldowns have to be in seconds. 1 day = 86400 seconds
+
+sal_cd = 86400
+sal_off_cd = time.time() #initializes as the time that the bot was last reset. 
 
 # Print a message to the console when the bot is logged in
 @bot.event
@@ -96,22 +103,24 @@ async def on_message(message):
         lowered = message.content.lower()
         split_str = lowered.split()
 
-        
+        #if author was scoopy -> send "new scoopy post" emotes (once they are made)
+        if message.author.id == 570409691620966413 and sal_off_cd >= time.time():
+            #soontm
+            sal_off_cd = time.time() + sal_cd
+            return
+
         #if told to shutup -> replies :(
         for phrase in phrases:
             if lowered.find(phrase) != -1:
                 await message.channel.send(":(")
                 return
-            
-        #making string lowercase + array of each word in message
-        lowered = message.content.lower()
-        split_str = lowered.split()
-
+        
         #if it finds a word that ends in "er" AND is longer than 4 letter AND is not in the word blacklist-> replies {word}? I hardly know'er!
         for word in split_str:
             if word.endswith("er") and len(word) > 4 and word not in blackList:
                 if random.randint(0,1000) < 25:
                     await message.channel.send(word + "? I hardly know'er!")
+
                 return
             
         #:3 -> replies :3
@@ -119,7 +128,7 @@ async def on_message(message):
             await message.channel.send(":3") 
             return
       
-            
+        
         
 
 
