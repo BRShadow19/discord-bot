@@ -123,8 +123,7 @@ class league(commands.Cog):
                 summoner = input[0].replace(" ", "%20")
                 summoner = input[0].replace("#", "/")
                 count = input[1]
-                url = self.gameAPI_url + "/v5/matches/" + summoner+"/"+count
-                await ctx.send(url)
+                url = self.gameAPI_url + "/matches/" + summoner+"/"+count
                 response = requests.get(url)
                 if response.status_code == 200:
                     data = response.json()
@@ -132,7 +131,6 @@ class league(commands.Cog):
                         name = input[0]
                         embed = discord.Embed(title=":crossed_swords: "+count+" Most Recent Matches :crossed_swords:", description=name,
                                             color=discord.Color.gold())
-                        await ctx.send("DATA : " + str(data))
                         for i in range(len(data)):   # Create a new embed field for each match
                             match_number = str(i+1)
                             match = data[i] # dict of the match stats
