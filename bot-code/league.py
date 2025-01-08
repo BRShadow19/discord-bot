@@ -1,5 +1,7 @@
 import discord
-from discord.ext import commands
+import datetime
+import json
+from discord.ext import commands, tasks 
 import requests
 
 class league(commands.Cog):
@@ -13,12 +15,78 @@ class league(commands.Cog):
                                 "FLEX": "Flex 5v5",
                                 "TFT": "TFT"
                             }
-     
         
+
+
+    utc = datetime.timezone.utc
+    #loops at 0:00, 6:00, 12:00, 18:00 EST (5:00, 11:00, 17:00, 23:00 UTC)
+    times = [datetime.time(hour=5,tzinfo=utc), datetime.time(hour=11, tzinfo=utc), 
+             datetime.time(hour=17,tzinfo=utc), datetime.time(hour=23, tzinfo=utc)]
+
+    
+
+   # @tasks.loop(time=times)
+   # async def check_rankup_loop(self):
+        
+
+
+    #def check_rank(self):
+        
+                           
     def sort_by_mastery(self, x):
         return x[1][1]
        
-        
+    
+    
+    @commands.command("loltrackadd")
+    async def trackadd(self, ctx, *, summoner_name = ""):
+        if len(summoner_name) > 0:
+            if "$" in summoner_name:
+                # Spaces must be "%20" in a URL
+                input = summoner_name.split("$")
+                user_strip = input[0].strip()
+                user_no_space = user_strip.replace(" ", "%20")
+                summoner = user_no_space.split("#")
+                summoner_name = summoner[0]
+                tagline = summoner[1]     
+                ranked_type = input[1].upper()  # Clean up the input, make it all uppercase
+                url = self.gameAPI_url + "/rank/" + summoner_name + "/" + tagline + "/" + ranked_type
+                response = requests.get(url)
+                if response.status_code == 200:
+                    data = response.json()
+                    if len(data) > 0:
+                        rank = data[0]
+                        rank = rank[0] + rank[1:].lower()   # 'BRONZE' -> 'Bronze'
+                        tier = data[1]
+                        ranked_queue = self.ranked_types[ranked_type]
+                        full_rank = rank + " " + tier
+                        summoner_fullname = summoner_name + "#" + str(tagline)
+                        
+                        dict = {"summoner" : summoner_fullname, "rank" : full_rank, "queue" : ranked_queue}
+                        
+                        #checking if user is already added
+                        with open("ranks.json", "r") as file:
+                            data = json.load(file)
+                        for dictionary in data:
+                            if "summoner" in dictionary and dictionary["summoner"] == summoner_fullname:
+                                await ctx.send("`" + summoner_fullname + "` is already being tracked")
+                                return
+                        #adding user to rank tracking json
+                        data.append(dict)
+                        with open("ranks.json", "w") as outfile:
+                                json.dump(data, outfile, indent=4)
+                        await ctx.send("`" + summoner_fullname + "`" + " `" + ranked_type + "` has been added to rank tracking!")
+                        
+                    else:
+                        await ctx.send("No ranked data found for that summoner with that ranked type :man_shrugging:")
+                else:
+                    await ctx.send("Looks like you sent a summoner name that doesn't exist... or there is a server issue")
+            else:
+                await ctx.send("Try again, make sure to enter a ranked type.  Ex: ShadowShark19 $SOLO")
+        else: 
+            await ctx.send("To use this command, enter a summoner name and the ranked type, with a '$' before the rank. Options are SOLO, FLEX, or TFT. Ex: ShadowShark19 $SOLO")
+    
+
     @commands.command("lolmastery")
     async def mastery(self, ctx, *, summoner_name=""):
         """Call GameAPI (https://github.com/BRShadow19/GameAPI) to gather League of Legends champion mastery statistics
