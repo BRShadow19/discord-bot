@@ -35,7 +35,8 @@ class league(commands.Cog):
                 # Spaces must be "%20" in a URL
                 input = summoner_name.split("$")
                 count = input[1]
-                user_no_space = input[0].replace(" ", "%20")
+                user_strip = input[0].strip()
+                user_no_space = user_strip.replace(" ", "%20")
                 summoner = user_no_space.split("#")
                 summoner_name = summoner[0]
                 tagline = summoner[1]     
@@ -76,10 +77,13 @@ class league(commands.Cog):
             if "$" in summoner_name:
                 # Spaces must be "%20" in a URL
                 input = summoner_name.split("$")
-                summoner = input[0].replace(" ", "%20")
-                summoner = input[0].replace("#", "/")
+                user_strip = input[0].strip()
+                user_no_space = user_strip.replace(" ", "%20")
+                summoner = user_no_space.split("#")
+                summoner_name = summoner[0]
+                tagline = summoner[1]     
                 ranked_type = input[1].upper()  # Clean up the input, make it all uppercase
-                url = self.gameAPI_url + "/rank/" + summoner + "/" + ranked_type
+                url = self.gameAPI_url + "/rank/" + summoner_name + "/" + tagline + "/" + ranked_type
                 response = requests.get(url)
                 if response.status_code == 200:
                     data = response.json()
@@ -120,10 +124,13 @@ class league(commands.Cog):
             if "$" in summoner_name:
                 # Spaces must be "%20" in a URL
                 input = summoner_name.split("$")
-                summoner = input[0].replace(" ", "%20")
-                summoner = input[0].replace("#", "/")
                 count = input[1]
-                url = self.gameAPI_url + "/matches/" + summoner+"/"+count
+                user_strip = input[0].strip()
+                user_no_space = user_strip.replace(" ", "%20")
+                summoner = user_no_space.split("#")
+                summoner_name = summoner[0]
+                tagline = summoner[1]     
+                url = self.gameAPI_url + "/matches/" + summoner_name + "/" + tagline + "/" +count
                 response = requests.get(url)
                 if response.status_code == 200:
                     data = response.json()
@@ -169,15 +176,18 @@ class league(commands.Cog):
                         such as the channel, who sent the message, when a message was sent, etc. Necessary for all bot commands
             summoner_name (str, optional): Name of the summoner to get the detailed match stats of, and the match
                                             after a '$'. Defaults to "".
-        """
+        """      
         if len(summoner_name) > 0:
             if "$" in summoner_name:
                 # Spaces must be "%20" in a URL
                 input = summoner_name.split("$")
-                summoner = input[0].replace(" ", "%20")
-                summoner = input[0].replace("#", "/") 
+                user_strip = input[0].strip()
+                user_no_space = user_strip.replace(" ", "%20")
+                summoner = user_no_space.split("#")
+                summoner_name = summoner[0]
+                tagline = summoner[1]     
                 start = input[1]
-                url = self.gameAPI_url + "/match/" + summoner+"/"+start
+                url = self.gameAPI_url + "/match/" + summoner_name +"/" + tagline + "/" +start
                 response = requests.get(url)
                 if response.status_code == 200:
                     data = response.json()
