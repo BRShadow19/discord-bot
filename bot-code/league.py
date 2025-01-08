@@ -45,11 +45,13 @@ class league(commands.Cog):
     ranks = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"]
     tiers = ["IV", "III", "II", "I"]
 
+    '''
     utc = datetime.timezone.utc
     #loops at 0:00, 6:00, 12:00, 18:00 EST (5:00, 11:00, 17:00, 23:00 UTC)
     times = [datetime.time(hour=5,tzinfo=utc), datetime.time(hour=11, tzinfo=utc), 
              datetime.time(hour=17,tzinfo=utc), datetime.time(hour=23, tzinfo=utc)]
-    
+    '''
+
     def get_current_rank(self, summoner_name):
         rank = ""
         try:
@@ -107,23 +109,49 @@ class league(commands.Cog):
 
 
 
-    '''
-    @tasks.loop(time=times)
-    async def check_rankup_loop(self, ctx):
+    
+    @tasks.loop(minutes=15)
+    async def rankup_loop(self, ctx):
 
         with open("ranks.json", "r") as file:
             data = json.load(file)
+
         for player in data:
             current_rank = self.get_current_rank(player["summoner"])
             if current_rank != player["rank"]:
+                #checking if the player demoted or promoted out of the rank as a whole, not just moving up or down a division
                 if self.check_rank_change(initial=player["rank"],final=current_rank):
                     embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Promotion " + self.rank_emotes[current_rank.split()[0].lower()], 
                                           description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!")
-                elif(self.check_rank_change(initial=player["rank"],final=current_rank) is False):
+                    player["rank"] = current_rank
+                    await ctx.send(embed=embed)
+                    continue #continue to next player in json
+
+                if self.check_rank_change(initial=player["rank"],final=current_rank) is False:
                     embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Demotion " + self.rank_emotes[current_rank.split()[0].lower()], 
                                           description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`!")
-    '''
+                    player["rank"] = current_rank
+                    await ctx.send(embed=embed)
+                    continue
+                
+                #now checking if the player went up or down divisions inside of a rank
+                if self.check_tier_change(initial=player["rank"], final=current_rank):
+                    embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Rank Update " + self.rank_emotes[current_rank.split()[0].lower()], 
+                                          description= "`"+player["summoner"] + "` has reached `" + current_rank + "`!")
+                    player["rank"] = current_rank
+                    await ctx.send(embed=embed)
+                    continue
+                if self.check_tier_change(initial=player["rank"], final=current_rank) is False:
+                    embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Rank Update " + self.rank_emotes[current_rank.split()[0].lower()], 
+                                          description= "`"+player["summoner"] + "` has fallen to `" + current_rank + "`!")
+                    player["rank"] = current_rank
+                    await ctx.send(embed=embed)
+                    continue
+        
+        with open("ranks.json", "w") as outfile:
+            json.dump(data, outfile, indent=4)
 
+    
     
     def sort_by_mastery(self, x):
         return x[1][1]
@@ -194,6 +222,12 @@ class league(commands.Cog):
             if "$" in summoner_name:
                 # Spaces must be "%20" in a URL
                 input = summoner_name.split("$")
+                #if user enters an invalid type
+                try:
+                    int(input[1])
+                except ValueError:
+                    await ctx.send("This command only accepts integers as a parameter, try adding a number after the $ instead. EX : `m!lolmastery ShadowShark19#190 $5`")
+                    return
                 count = input[1]
                 user_strip = input[0].strip()
                 user_no_space = user_strip.replace(" ", "%20")
@@ -242,26 +276,37 @@ class league(commands.Cog):
                 summoner = user_no_space.split("#")
                 summoner_name = summoner[0]
                 tagline = summoner[1]     
-                ranked_type = input[1].upper()  # Clean up the input, make it all uppercase
-                url = self.gameAPI_url + "/rank/" + summoner_name + "/" + tagline + "/" + ranked_type
-                response = requests.get(url)
-                if response.status_code == 200:
-                    data = response.json()
-                    if len(data) > 0:
-                        name = input[0]
-                        embed = discord.Embed(title=":trophy: Summoner Rank :trophy:", description=name,
-                                            color=discord.Color.gold())
-                        rank = data[0]
-                        rank = rank[0] + rank[1:].lower()   # 'BRONZE' -> 'Bronze'
-                        tier = data[1]
-                        lp = str(data[2])
-                        ranked_queue = self.ranked_types[ranked_type]
-                        embed.add_field(name=ranked_queue, value=rank+" "+tier+", "+lp+" LP", inline=False)
-                        await ctx.send(embed=embed)
+                 #if user enters an invalid type
+                try:
+                    int(input[1])
+                    valid_int = True
+                except ValueError:
+                    valid_int = False
+                if not valid_int:
+                    ranked_type = input[1].upper()  # Clean up the input, make it all uppercase
+                    url = self.gameAPI_url + "/rank/" + summoner_name + "/" + tagline + "/" + ranked_type
+                    response = requests.get(url)
+                    await ctx.send(url)
+                    if response.status_code == 200:
+                        data = response.json()
+                        await ctx.send(data)
+                        if len(data) > 0:
+                            name = input[0]
+                            embed = discord.Embed(title=":trophy: Summoner Rank :trophy:", description=name,
+                                                color=discord.Color.gold())
+                            rank = data[0]
+                            rank = rank[0] + rank[1:].lower()   # 'BRONZE' -> 'Bronze'
+                            tier = data[1]
+                            lp = str(data[2])
+                            ranked_queue = self.ranked_types[ranked_type]
+                            embed.add_field(name=ranked_queue, value=rank+" "+tier+", "+lp+" LP", inline=False)
+                            await ctx.send(embed=embed)
+                        else:
+                            await ctx.send("No ranked data found for that summoner with that ranked type :man_shrugging:")
                     else:
-                        await ctx.send("No ranked data found for that summoner with that ranked type :man_shrugging:")
+                        await ctx.send("Looks like you sent a summoner name that doesn't exist... or there is a server issue")
                 else:
-                    await ctx.send("Looks like you sent a summoner name that doesn't exist... or there is a server issue")
+                    await ctx.send("This command does not accept integers as a parameter, try adding text after the $ instead. EX : `m!lolrank ShadowShark19#190 $SOLO`")
             else:
                 await ctx.send("Try again, make sure to enter a ranked type.  Ex: ShadowShark19 $SOLO")
         else: 
@@ -284,6 +329,14 @@ class league(commands.Cog):
             if "$" in summoner_name:
                 # Spaces must be "%20" in a URL
                 input = summoner_name.split("$")
+
+                #if user enters an invalid type
+                try:
+                    int(input[1])
+                except ValueError:
+                    await ctx.send("This command only accepts integers as a parameter, try adding a number after the $ instead. EX : `m!lolmatches ShadowShark19#190 $5`")
+                    return
+                
                 count = input[1]
                 user_strip = input[0].strip()
                 user_no_space = user_strip.replace(" ", "%20")
@@ -346,6 +399,15 @@ class league(commands.Cog):
                 summoner = user_no_space.split("#")
                 summoner_name = summoner[0]
                 tagline = summoner[1]     
+
+                 #if user enters an invalid type
+                
+                try:
+                    int(input[1])
+                except ValueError:
+                    await ctx.send("This command only accepts integers as a parameter, try adding a number after the $ instead. EX : `m!lolmatch ShadowShark19#190 $1`")
+                    return
+                
                 start = input[1]
                 url = self.gameAPI_url + "/match/" + summoner_name +"/" + tagline + "/" +start
                 response = requests.get(url)
