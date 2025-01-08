@@ -38,7 +38,7 @@ class league(commands.Cog):
      "emerald" : discord.Color.from_rgb(36, 166, 27),
      "diamond" : discord.Color.from_rgb(6, 130, 201),
      "master" : discord.Color.from_rgb(222, 71, 222),
-     "grandmastser" : discord.Color.from_rgb(173, 17, 54),
+     "grandmaster" : discord.Color.from_rgb(173, 17, 54),
      "challenger" : discord.Color.from_rgb(0, 177, 252)
     }
 
@@ -105,17 +105,19 @@ class league(commands.Cog):
 
     @commands.command("testembed")
     async def embedtest(self, ctx):
-        for rank in self.ranks:
+        test_channel = self.bot.get_channel(984494911636258847)
+        for rank in self.ranks[1:]:
             embed = discord.Embed(title=self.rank_emotes[rank] + " Rank Update " + self.rank_emotes[rank], description="`insert player name` has reached `insert rank`!",
                                         color=self.rank_colors[rank])
-            await ctx.send(embed=embed)
+            await test_channel.send(embed=embed)
 
 
 
     
     @tasks.loop(minutes=15)
     async def rankup_loop(self, ctx):
-
+        # this is the league-track channel
+        track_channel =self.bot.get_channel(1326681372907143228)
         with open("ranks.json", "r") as file:
             data = json.load(file)
 
@@ -127,14 +129,14 @@ class league(commands.Cog):
                     embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Promotion " + self.rank_emotes[current_rank.split()[0].lower()], 
                                           description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!")
                     player["rank"] = current_rank
-                    await ctx.send(embed=embed)
+                    await track_channel.send(embed=embed)
                     continue #continue to next player in json
 
                 if self.check_rank_change(initial=player["rank"],final=current_rank) is False:
                     embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Demotion " + self.rank_emotes[current_rank.split()[0].lower()], 
                                           description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`!")
                     player["rank"] = current_rank
-                    await ctx.send(embed=embed)
+                    await track_channel.send(embed=embed)
                     continue
                 
                 #now checking if the player went up or down divisions inside of a rank
@@ -142,13 +144,13 @@ class league(commands.Cog):
                     embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Rank Update " + self.rank_emotes[current_rank.split()[0].lower()], 
                                           description= "`"+player["summoner"] + "` has reached `" + current_rank + "`!")
                     player["rank"] = current_rank
-                    await ctx.send(embed=embed)
+                    await track_channel.send(embed=embed)
                     continue
                 if self.check_tier_change(initial=player["rank"], final=current_rank) is False:
                     embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Rank Update " + self.rank_emotes[current_rank.split()[0].lower()], 
                                           description= "`"+player["summoner"] + "` has fallen to `" + current_rank + "`!")
                     player["rank"] = current_rank
-                    await ctx.send(embed=embed)
+                    await track_channel.send(embed=embed)
                     continue
         
         with open("ranks.json", "w") as outfile:
