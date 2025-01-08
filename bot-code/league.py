@@ -15,24 +15,116 @@ class league(commands.Cog):
                                 "FLEX": "Flex 5v5",
                                 "TFT": "TFT"
                             }
-        
+    #emotes in testing server
+    rank_emotes = {
+    "iron" : "<:iron:1326622103478210680>", 
+     "bronze" : "<:bronze:1326622098533257298>",
+     "silver" : "<:silver:1326622102207467540>",
+     "gold" : "<:gold:1326622097279160330>",
+     "platinum" : "<:platinum:1326622099887882331>",
+     "emerald" : "<:emerald:1326622929936453672>",
+     "diamond" : "<:diamond:1326622096222322688>",
+     "master" : "<:master:1326622104522592389>",
+     "grandmaster" : "<:grandmaster:1326622106959740928>",
+     "challenger" : "<:challenger:1326622105785073704>"
+    }
+    #colors for rank based embeds
+    rank_colors = {
+        "iron" : discord.Color.from_rgb(79, 56, 26), 
+     "bronze" : discord.Color.from_rgb(156, 56, 9),
+     "silver" : discord.Color.from_rgb(136, 141, 143),
+     "gold" : discord.Color.from_rgb(219, 165, 18),
+     "platinum" : discord.Color.from_rgb(39, 230, 172),
+     "emerald" : discord.Color.from_rgb(36, 166, 27),
+     "diamond" : discord.Color.from_rgb(6, 130, 201),
+     "master" : discord.Color.from_rgb(222, 71, 222),
+     "grandmastser" : discord.Color.from_rgb(173, 17, 54),
+     "challenger" : discord.Color.from_rgb(0, 177, 252)
+    }
 
+    ranks = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"]
+    tiers = ["IV", "III", "II", "I"]
 
     utc = datetime.timezone.utc
     #loops at 0:00, 6:00, 12:00, 18:00 EST (5:00, 11:00, 17:00, 23:00 UTC)
     times = [datetime.time(hour=5,tzinfo=utc), datetime.time(hour=11, tzinfo=utc), 
              datetime.time(hour=17,tzinfo=utc), datetime.time(hour=23, tzinfo=utc)]
+    
+    def get_current_rank(self, summoner_name):
+        rank = ""
+        try:
+            if len(summoner_name) > 0:
+                if "$" in summoner_name:
+                    # Spaces must be "%20" in a URL
+                    input = summoner_name.split("$")
+                    user_strip = input[0].strip()
+                    user_no_space = user_strip.replace(" ", "%20")
+                    summoner = user_no_space.split("#")
+                    summoner_name = summoner[0]
+                    tagline = summoner[1]     
+                    ranked_type = input[1].upper()  # Clean up the input, make it all uppercase
+                    url = self.gameAPI_url + "/rank/" + summoner_name + "/" + tagline + "/" + ranked_type
+                    response = requests.get(url)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if len(data) > 0:
+                            rank = data[0]
+                            rank = rank[0] + rank[1:].lower()   # 'BRONZE' -> 'Bronze'
+                            tier = data[1]
+                            rank = rank + " " + tier
+                            return rank
+        except:
+            print("broke :(")
+            return rank
+    
+    #checks if a players rank went up or down, separate from tiers. Returns True if player climbed, False if player demoted
+    def check_rank_change(self, initial, final):
+        start = initial.split()[0].lower()
+        end = final.split()[0].lower()
+        if(self.ranks.index(start) < self.ranks.index(final)):
+            return True
+        else:
+            return False
+
+
+
+    #checks if a player's tier went up or down. Returns True if player climbed, False if player demoted.
+    def check_tier_change(self, initial, final):
+        start = initial.split()[1]
+        end = final.split()[1]
+        if(self.tiers.index(start) < self.tiers.index(final)):
+            return True
+        else:
+            return False
+        
+
+    @commands.command("testembed")
+    async def embedtest(self, ctx):
+        for rank in self.ranks:
+            embed = discord.Embed(title=self.rank_emotes[rank] + " Rank Update " + self.rank_emotes[rank], description="`insert player name` has reached `insert rank`!",
+                                        color=self.rank_colors[rank])
+            await ctx.send(embed=embed)
+
+
+
+    '''
+    @tasks.loop(time=times)
+    async def check_rankup_loop(self, ctx):
+
+        with open("ranks.json", "r") as file:
+            data = json.load(file)
+        for player in data:
+            current_rank = self.get_current_rank(player["summoner"])
+            if current_rank != player["rank"]:
+                if self.check_rank_change(initial=player["rank"],final=current_rank):
+                    embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Promotion " + self.rank_emotes[current_rank.split()[0].lower()], 
+                                          description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!")
+                elif(self.check_rank_change(initial=player["rank"],final=current_rank) is False):
+                    embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Demotion " + self.rank_emotes[current_rank.split()[0].lower()], 
+                                          description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`!")
+    '''
 
     
-
-   # @tasks.loop(time=times)
-   # async def check_rankup_loop(self):
-        
-
-
-    #def check_rank(self):
-        
-                           
     def sort_by_mastery(self, x):
         return x[1][1]
        
