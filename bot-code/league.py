@@ -42,7 +42,7 @@ class league(commands.Cog):
      "challenger" : discord.Color.from_rgb(0, 177, 252)
     }
 
-    ranks = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"]
+    ranks = ["","iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"]
     tiers = ["IV", "III", "II", "I"]
 
     '''
@@ -74,6 +74,9 @@ class league(commands.Cog):
                             rank = rank[0] + rank[1:].lower()   # 'BRONZE' -> 'Bronze'
                             tier = data[1]
                             rank = rank + " " + tier
+                            return rank
+                        else:
+                            rank = ""
                             return rank
         except:
             print("broke :(")
@@ -198,7 +201,23 @@ class league(commands.Cog):
                         await ctx.send("`" + summoner_fullname + "`" + " `" + ranked_type + "` has been added to rank tracking!")
                         
                     else:
-                        await ctx.send("No ranked data found for that summoner with that ranked type :man_shrugging:")
+                        full_rank = ""
+                        ranked_queue = self.ranked_types[ranked_type]
+                        summoner_fullname = summoner_name + "#" + str(tagline)
+                        dict = {"summoner" : summoner_fullname, "rank" : full_rank, "queue" : ranked_queue}
+                        
+                        #checking if user is already added
+                        with open("ranks.json", "r") as file:
+                            data = json.load(file)
+                        for dictionary in data:
+                            if "summoner" in dictionary and dictionary["summoner"] == summoner_fullname:
+                                await ctx.send("`" + summoner_fullname + "` is already being tracked")
+                                return
+                        #adding user to rank tracking json
+                        data.append(dict)
+                        with open("ranks.json", "w") as outfile:
+                                json.dump(data, outfile, indent=4)
+                        await ctx.send("`" + summoner_fullname + "`" + " `" + ranked_type + "` has been added to rank tracking!")
                 else:
                     await ctx.send("Looks like you sent a summoner name that doesn't exist... or there is a server issue")
             else:
