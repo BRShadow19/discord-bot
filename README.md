@@ -159,7 +159,7 @@ This guide will assume you already have Docker installed and working on your mac
   ```
 * Run the application
   ```sh
-  docker run -d -it --name=CONTAINER_NAME
+  docker run -d -it --name=CONTAINER_NAME --network=host containername --restart=unless-stopped
   ```
 And that's it! The bot should be up and running now. You can use
 ```sh
