@@ -28,6 +28,7 @@ class league(commands.Cog):
      "grandmaster" : "<:grandmaster:1326622106959740928>",
      "challenger" : "<:challenger:1326622105785073704>"
     }
+
     #colors for rank based embeds
     rank_colors = {
         "iron" : discord.Color.from_rgb(79, 56, 26), 
@@ -41,6 +42,35 @@ class league(commands.Cog):
      "grandmaster" : discord.Color.from_rgb(173, 17, 54),
      "challenger" : discord.Color.from_rgb(0, 177, 252)
     }
+
+    #pngs for ranked icons, from https://raw.communitydragon.org/
+    icon_url = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/"
+    rank_icons= {
+                 "iron" : icon_url + "iron.png",
+                 "bronze" : icon_url + "bronze.png",
+                 "silver" : icon_url + "silver.png",
+                 "gold" : icon_url + "gold.png",
+                 "platinum" : icon_url + "platinum.png",
+                 "emerald" : icon_url + "emerald.png",
+                 "diamond" : icon_url + "diamond.png",
+                 "master" : icon_url + "master.png",
+                 "grandmaster" : icon_url + "grandmaster.png",
+                 "challenger" : icon_url + "challenger.png"
+                 }
+    
+    #gifs for rankups NOTE: DOES NOT WORK CURRENTLY, MAY CONTINUE TO TRY AND GET THESE WORKING AS IT WOULD BE REALLY COOL!
+    rankup_url = "https://raw.communitydragon.org/pbe/plugins/rcp-fe-lol-static-assets/global/default/videos/ranked/tier-promotion-to-"
+    rankup_gifs = {
+                "bronze" : rankup_url + "bronze.webm",
+                "silver" : rankup_url + "silver.webm",
+                "gold" : rankup_url + "gold.webm",
+                "platinum" : rankup_url + "platinum.webm",
+                "emerald" : rankup_url + "emerald.webm",
+                "diamond" : rankup_url + "diamond.webm",
+                "master" : rankup_url + "master.webm",
+                "grandmaster" : rankup_url + "grandmaster.webm",
+                "challenger" : rankup_url + "challenger.webm"
+                }
 
     ranks = ["","iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"]
     tiers = ["IV", "III", "II", "I"]
@@ -106,11 +136,10 @@ class league(commands.Cog):
     @commands.command("testembed")
     async def embedtest(self, ctx):
         test_channel = self.bot.get_channel(984494911636258847)
-        for rank in self.ranks[1:]:
+        for rank in self.ranks[2:]:
             embed = discord.Embed(title=self.rank_emotes[rank] + " Rank Update " + self.rank_emotes[rank], description="`insert player name` has reached `insert rank`!",
-                                        color=self.rank_colors[rank])
+                                        color=self.rank_colors[rank]).set_thumbnail(url=self.rank_icons[rank])
             await test_channel.send(embed=embed)
-
 
 
     
@@ -123,32 +152,33 @@ class league(commands.Cog):
 
         for player in data:
             current_rank = self.get_current_rank(player["summoner"])
+            split_rank = current_rank.split()[0].lower()
             if current_rank != player["rank"]:
                 #checking if the player demoted or promoted out of the rank as a whole, not just moving up or down a division
                 if self.check_rank_change(initial=player["rank"],final=current_rank):
-                    embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Promotion " + self.rank_emotes[current_rank.split()[0].lower()], 
-                                          description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!")
+                    embed = discord.Embed(title=self.rank_emotes[split_rank] + " Promotion " + self.rank_emotes[split_rank], 
+                                          description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!").set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue #continue to next player in json
 
                 if self.check_rank_change(initial=player["rank"],final=current_rank) is False:
-                    embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Demotion " + self.rank_emotes[current_rank.split()[0].lower()], 
-                                          description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`!")
+                    embed = discord.Embed(title=self.rank_emotes[split_rank] + " Demotion " + self.rank_emotes[split_rank], 
+                                          description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`").set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue
                 
                 #now checking if the player went up or down divisions inside of a rank
                 if self.check_tier_change(initial=player["rank"], final=current_rank):
-                    embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Rank Update " + self.rank_emotes[current_rank.split()[0].lower()], 
+                    embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
                                           description= "`"+player["summoner"] + "` has reached `" + current_rank + "`!")
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue
                 if self.check_tier_change(initial=player["rank"], final=current_rank) is False:
-                    embed = discord.Embed(title=self.rank_emotes[current_rank.split()[0].lower()] + " Rank Update " + self.rank_emotes[current_rank.split()[0].lower()], 
-                                          description= "`"+player["summoner"] + "` has fallen to `" + current_rank + "`!")
+                    embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
+                                          description= "`"+player["summoner"] + "` has fallen to `" + current_rank + "`")
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue
@@ -307,21 +337,20 @@ class league(commands.Cog):
                     ranked_type = input[1].upper()  # Clean up the input, make it all uppercase
                     url = self.gameAPI_url + "/rank/" + summoner_name + "/" + tagline + "/" + ranked_type
                     response = requests.get(url)
-                    await ctx.send(url)
                     if response.status_code == 200:
                         data = response.json()
-                        await ctx.send(data)
                         if len(data) > 0:
                             name = input[0]
-                            embed = discord.Embed(title=":trophy: Summoner Rank :trophy:", description=name,
-                                                color=discord.Color.gold())
                             rank = data[0]
                             rank = rank[0] + rank[1:].lower()   # 'BRONZE' -> 'Bronze'
                             tier = data[1]
+                            embed = discord.Embed(title=":trophy: Summoner Rank :trophy:", description=name,
+                                                color=self.rank_colors[rank.lower()]).set_thumbnail(url=self.rank_icons[rank.lower()])
                             lp = str(data[2])
                             ranked_queue = self.ranked_types[ranked_type]
                             embed.add_field(name=ranked_queue, value=rank+" "+tier+", "+lp+" LP", inline=False)
                             await ctx.send(embed=embed)
+                            
                         else:
                             await ctx.send("No ranked data found for that summoner with that ranked type :man_shrugging:")
                     else:

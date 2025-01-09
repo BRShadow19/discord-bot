@@ -71,7 +71,7 @@
 
 After dealing with various music bots being shut down on Discord, we decided to make our own as a fun side project. We began with the goal of making a bot that could play music from a YouTube link with some basic music player functionalities, such as play, pause, view the queue, etc. After a few months of working on the project in our free time, it has begun to evolve into something that we use for more than just listening to music in a call together. Our bot is capable of playing audio from both YouTube and Spotify links, answering your questions with an 8 ball, telling you the weather in a given location, and can even give you some stats from the rhythm game OSU! We plan to add more functionality in the future, specifically around integration with some of our favorite video games. 
 
-This bot is coded completely in Python with a lot of help from the Discord API wrapper [Discord.py](https://discordpy.readthedocs.io/en/stable/index.html). The bot can be run as a Python script, or in a Docker container with the provided [Dockerfile](https://github.com/BRShadow19/discord-bot/blob/main/Dockerfile).
+This bot is coded completely in Python with a lot of help from the Discord API wrapper [Discord.py](https://discordpy.readthedocs.io/en/stable/index.html). The bot can be run as a Python script, or in a Docker container with the provided [Dockerfile](https://github.com/BRShadow19/discord-bot/blob/main/Dockerfile). The bot pulls assets from the [Community Dragon](https://www.communitydragon.org/) servers that are used in its League of Legends and future Teamfight Tactics functionalities.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -251,6 +251,7 @@ Project Link: [https://github.com/brshadow19/discord-bot](https://github.com/brs
 * [osu!api](https://github.com/ppy/osu-api/wiki)
 * [Choose an Open Source License](https://choosealicense.com)
 * [Img Shields](https://shields.io)
+* [Community Dragon](https://www.communitydragon.org/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
