@@ -108,7 +108,8 @@ class Utils(commands.Cog):
     @commands.command()
     async def uptime(self, ctx):
 
-        uptime = datetime.timedelta(time.time() - self.start_time)
+        uptime_seconds = time.time() - self.start_time
+        uptime = datetime.timedelta(seconds=uptime_seconds)
 
         start = datetime.datetime.fromtimestamp(self.start_time)
 
