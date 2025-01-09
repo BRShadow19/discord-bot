@@ -15,6 +15,14 @@ class league(commands.Cog):
                                 "FLEX": "Flex 5v5",
                                 "TFT": "TFT"
                             }
+    
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        if not self.rankup_loop.is_running():
+            print("Starting rankup loop...")
+            self.rankup_loop.start()
+        
     #emotes in testing server
     rank_emotes = {
     "iron" : "<:iron:1326622103478210680>", 
@@ -31,6 +39,7 @@ class league(commands.Cog):
 
     #colors for rank based embeds
     rank_colors = {
+        "" : discord.Color.from_rgb(0,0,0),
         "iron" : discord.Color.from_rgb(79, 56, 26), 
      "bronze" : discord.Color.from_rgb(156, 56, 9),
      "silver" : discord.Color.from_rgb(136, 141, 143),
@@ -46,6 +55,7 @@ class league(commands.Cog):
     #pngs for ranked icons, from https://raw.communitydragon.org/
     icon_url = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/"
     rank_icons= {
+                 "" : icon_url + "unranked.png",
                  "iron" : icon_url + "iron.png",
                  "bronze" : icon_url + "bronze.png",
                  "silver" : icon_url + "silver.png",
@@ -82,19 +92,15 @@ class league(commands.Cog):
              datetime.time(hour=17,tzinfo=utc), datetime.time(hour=23, tzinfo=utc)]
     '''
 
-    def get_current_rank(self, summoner_name):
-        rank = ""
-        try:
-            if len(summoner_name) > 0:
-                if "$" in summoner_name:
+    def get_current_rank(self, summoner_name, ranked_type):
+            rank = ""
+        
+            if len(summoner_name) > 0:      
                     # Spaces must be "%20" in a URL
-                    input = summoner_name.split("$")
-                    user_strip = input[0].strip()
-                    user_no_space = user_strip.replace(" ", "%20")
+                    user_no_space = summoner_name.replace(" ", "%20")
                     summoner = user_no_space.split("#")
                     summoner_name = summoner[0]
                     tagline = summoner[1]     
-                    ranked_type = input[1].upper()  # Clean up the input, make it all uppercase
                     url = self.gameAPI_url + "/rank/" + summoner_name + "/" + tagline + "/" + ranked_type
                     response = requests.get(url)
                     if response.status_code == 200:
@@ -104,12 +110,12 @@ class league(commands.Cog):
                             rank = rank[0] + rank[1:].lower()   # 'BRONZE' -> 'Bronze'
                             tier = data[1]
                             rank = rank + " " + tier
+                            #print("this two :3" + str(rank))
                             return rank
                         else:
                             rank = ""
+                            #print("this one :3")
                             return rank
-        except:
-            print("broke :(")
             return rank
     
     #checks if a players rank went up or down, separate from tiers. Returns True if player climbed, False if player demoted
@@ -141,30 +147,48 @@ class league(commands.Cog):
                                         color=self.rank_colors[rank]).set_thumbnail(url=self.rank_icons[rank])
             await test_channel.send(embed=embed)
 
-
     
-    @tasks.loop(minutes=15)
-    async def rankup_loop(self, ctx):
+    @tasks.loop(seconds=15)
+    async def rankup_loop(self):
+        
         # this is the league-track channel
-        track_channel =self.bot.get_channel(1326681372907143228)
+        #print("hi")
+        track_channel =self.bot.get_channel(984494911636258847)
+        #await track_channel.send("Hi")
         with open("ranks.json", "r") as file:
             data = json.load(file)
-
+        if len(data) == 0:
+            print("No summoners being tracked")
+            return
         for player in data:
-            current_rank = self.get_current_rank(player["summoner"])
-            split_rank = current_rank.split()[0].lower()
+            current_rank = self.get_current_rank(player["summoner"], player["type"])
+            print(player["summoner"])
+            print(current_rank)
+            #await track_channel.send(player["summoner"])
             if current_rank != player["rank"]:
+                print("first if")
+                #if player is unranked
+                if current_rank is None or "":
+                    print("second if")
+                    current_rank = ""
+                    embed = discord.Embed(title="Rank Update", description = "`" + player["summoner"] + "` is now `unranked`\nWas `" + player["rank"] + "`",color=self.rank_colors[current_rank]).set_thumbnail(url=self.rank_icons[current_rank])
+                    player["rank"] = current_rank
+                    await track_channel.send(embed=embed)
+                    continue
+                
+                print(current_rank)
+                split_rank = current_rank.split()[0].lower()
                 #checking if the player demoted or promoted out of the rank as a whole, not just moving up or down a division
                 if self.check_rank_change(initial=player["rank"],final=current_rank):
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Promotion " + self.rank_emotes[split_rank], 
-                                          description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!").set_thumbnail(url=self.rank_icons[split_rank])
+                                          description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue #continue to next player in json
 
                 if self.check_rank_change(initial=player["rank"],final=current_rank) is False:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Demotion " + self.rank_emotes[split_rank], 
-                                          description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`").set_thumbnail(url=self.rank_icons[split_rank])
+                                          description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue
@@ -172,13 +196,13 @@ class league(commands.Cog):
                 #now checking if the player went up or down divisions inside of a rank
                 if self.check_tier_change(initial=player["rank"], final=current_rank):
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
-                                          description= "`"+player["summoner"] + "` has reached `" + current_rank + "`!")
+                                          description= "`"+player["summoner"] + "` has reached `" + current_rank + "`!",color=self.rank_colors[split_rank])
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue
                 if self.check_tier_change(initial=player["rank"], final=current_rank) is False:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
-                                          description= "`"+player["summoner"] + "` has fallen to `" + current_rank + "`")
+                                          description= "`"+player["summoner"] + "` has fallen to `" + current_rank + "`",color=self.rank_colors[split_rank])
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue
@@ -186,7 +210,9 @@ class league(commands.Cog):
         with open("ranks.json", "w") as outfile:
             json.dump(data, outfile, indent=4)
 
-    
+    @rankup_loop.before_loop
+    async def before_rankup_loop(self):
+        await self.bot.wait_until_ready()
     
     def sort_by_mastery(self, x):
         return x[1][1]
@@ -217,7 +243,7 @@ class league(commands.Cog):
                         full_rank = rank + " " + tier
                         summoner_fullname = summoner_name + "#" + str(tagline)
                         
-                        dict = {"summoner" : summoner_fullname, "rank" : full_rank, "queue" : ranked_queue}
+                        dict = {"summoner" : summoner_fullname, "rank" : full_rank, "type" : ranked_type, "queue" : ranked_queue}
                         
                         #checking if user is already added
                         with open("ranks.json", "r") as file:
@@ -236,7 +262,7 @@ class league(commands.Cog):
                         full_rank = ""
                         ranked_queue = self.ranked_types[ranked_type]
                         summoner_fullname = summoner_name + "#" + str(tagline)
-                        dict = {"summoner" : summoner_fullname, "rank" : full_rank, "queue" : ranked_queue}
+                        dict = {"summoner" : summoner_fullname, "rank" : full_rank, "type" : ranked_type, "queue" : ranked_queue}
                         
                         #checking if user is already added
                         with open("ranks.json", "r") as file:
