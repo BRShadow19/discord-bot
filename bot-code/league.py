@@ -25,6 +25,7 @@ class league(commands.Cog):
         
     #emotes in testing server
     rank_emotes = {
+    "" : "<:unranked:1327026483067097178>",
     "iron" : "<:iron:1326622103478210680>", 
      "bronze" : "<:bronze:1326622098533257298>",
      "silver" : "<:silver:1326622102207467540>",
@@ -150,28 +151,20 @@ class league(commands.Cog):
     
     @tasks.loop(seconds=15)
     async def rankup_loop(self):
-        
+        test_channel = self.bot.get_channel(984494911636258847)
         # this is the league-track channel
-        #print("hi")
-        track_channel =self.bot.get_channel(984494911636258847)
-        #await track_channel.send("Hi")
+        track_channel =self.bot.get_channel(1326681372907143228)
         with open("ranks.json", "r") as file:
             data = json.load(file)
-        if len(data) == 0:
-            print("No summoners being tracked")
+        if len(data) == 0: #if no one is being tracked
             return
         for player in data:
             current_rank = self.get_current_rank(player["summoner"], player["type"])
-            print(player["summoner"])
-            print(current_rank)
-            #await track_channel.send(player["summoner"])
             if current_rank != player["rank"]:
-                print("first if")
                 #if player is unranked
-                if current_rank is None or "":
-                    print("second if")
+                if current_rank is None or current_rank is "":
                     current_rank = ""
-                    embed = discord.Embed(title="Rank Update", description = "`" + player["summoner"] + "` is now `unranked`\nWas `" + player["rank"] + "`",color=self.rank_colors[current_rank]).set_thumbnail(url=self.rank_icons[current_rank])
+                    embed = discord.Embed(title=self.rank_emotes[current_rank] + "Rank Update" + self.rank_emotes[current_rank], description = "`" + player["summoner"] + "` is now `unranked`\nWas `" + player["rank"] + "`",color=self.rank_colors[current_rank]).set_thumbnail(url=self.rank_icons[current_rank])
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
                     continue
@@ -184,7 +177,7 @@ class league(commands.Cog):
                                           description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await track_channel.send(embed=embed)
-                    continue #continue to next player in json
+                    continue 
 
                 if self.check_rank_change(initial=player["rank"],final=current_rank) is False:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Demotion " + self.rank_emotes[split_rank], 
