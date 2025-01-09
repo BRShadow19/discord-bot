@@ -149,7 +149,7 @@ class league(commands.Cog):
             await test_channel.send(embed=embed)
 
     
-    @tasks.loop(seconds=15)
+    @tasks.loop(minutes=15)
     async def rankup_loop(self):
         test_channel = self.bot.get_channel(984494911636258847)
         # this is the league-track channel
