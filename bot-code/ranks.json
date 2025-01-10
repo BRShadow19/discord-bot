@@ -1,7 +1,7 @@
 [
     {
-        "summoner": "Slay\u00c6#owo7",
-        "rank": "",
+        "summoner": "Froggymeadows#rawr",
+        "rank": "Iron II",
         "type": "SOLO",
         "queue": "Solo/Duo"
     },
@@ -12,7 +12,19 @@
         "queue": "Solo/Duo"
     },
     {
+        "summoner": "Slay\u00c6#owo7",
+        "rank": "",
+        "type": "SOLO",
+        "queue": "Solo/Duo"
+    },
+    {
         "summoner": "amphibiousbean#1987",
+        "rank": "",
+        "type": "SOLO",
+        "queue": "Solo/Duo"
+    },
+    {
+        "summoner": "Xandrak#buhh",
         "rank": "",
         "type": "SOLO",
         "queue": "Solo/Duo"

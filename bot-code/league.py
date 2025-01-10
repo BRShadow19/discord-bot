@@ -3,6 +3,7 @@ import datetime
 import json
 from discord.ext import commands, tasks 
 import requests
+import os
 
 class league(commands.Cog):
     """This class contains all League of Legends commands for the bot
@@ -86,12 +87,7 @@ class league(commands.Cog):
     ranks = ["","iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"]
     tiers = ["IV", "III", "II", "I"]
 
-    '''
-    utc = datetime.timezone.utc
-    #loops at 0:00, 6:00, 12:00, 18:00 EST (5:00, 11:00, 17:00, 23:00 UTC)
-    times = [datetime.time(hour=5,tzinfo=utc), datetime.time(hour=11, tzinfo=utc), 
-             datetime.time(hour=17,tzinfo=utc), datetime.time(hour=23, tzinfo=utc)]
-    '''
+   #ranks_path = os.getcwd() + "\\bot-code\\ranks.json"
 
     def get_current_rank(self, summoner_name, ranked_type):
             rank = ""
@@ -148,59 +144,85 @@ class league(commands.Cog):
                                         color=self.rank_colors[rank]).set_thumbnail(url=self.rank_icons[rank])
             await test_channel.send(embed=embed)
 
-    
+    test_count = 0
+
+    ranks_path = "ranks.json"      #for actual bot
+    #anks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
+
     @tasks.loop(minutes=15)
     async def rankup_loop(self):
-        test_channel = self.bot.get_channel(984494911636258847)
-        # this is the league-track channel
-        track_channel =self.bot.get_channel(1326681372907143228)
-        with open("ranks.json", "r") as file:
+
+        #NOTE:COMMENT OUT WHICHEVER ONE YOU ARE NOT USING OR IT WILL GIVE ATTRIBUTE ERROR
+
+        # this is the bot-spam channel for testing
+        #channel = self.bot.get_channel(984494911636258847)
+
+        # this is the league-track channel for actual use
+        channel =self.bot.get_channel(1326681372907143228)
+
+        with open(self.ranks_path, "r") as file:
             data = json.load(file)
         if len(data) == 0: #if no one is being tracked
             return
+        
         for player in data:
             current_rank = self.get_current_rank(player["summoner"], player["type"])
             if current_rank != player["rank"]:
-                #if player is unranked
-                if current_rank is None or current_rank is "":
+
+                #if player was unranked and no longer is
+                if player["rank"] == "" or player["rank"] == None:
+                    rank_split = current_rank.split()[0].lower()
+                    embed = discord.Embed(title=self.rank_emotes[rank_split] + "Rank Update" + self.rank_emotes[rank_split], description = "`" + player["summoner"] + "` is now `" + current_rank + "`\nWas `unranked`",color=self.rank_colors[rank_split]).set_thumbnail(url=self.rank_icons[rank_split])
+                    player["rank"] = current_rank
+                    await channel.send(embed=embed)
+                    continue
+
+                #if player is now unranked
+                if current_rank == None or current_rank == "":
                     current_rank = ""
                     embed = discord.Embed(title=self.rank_emotes[current_rank] + "Rank Update" + self.rank_emotes[current_rank], description = "`" + player["summoner"] + "` is now `unranked`\nWas `" + player["rank"] + "`",color=self.rank_colors[current_rank]).set_thumbnail(url=self.rank_icons[current_rank])
                     player["rank"] = current_rank
-                    await track_channel.send(embed=embed)
+                    await channel.send(embed=embed)
                     continue
                 
-                print(current_rank)
-                split_rank = current_rank.split()[0].lower()
+                split_rank = current_rank.split()[0].lower() 
                 #checking if the player demoted or promoted out of the rank as a whole, not just moving up or down a division
+
+                #rank promo
                 if self.check_rank_change(initial=player["rank"],final=current_rank):
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Promotion " + self.rank_emotes[split_rank], 
                                           description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
-                    await track_channel.send(embed=embed)
+                    await channel.send(embed=embed)
                     continue 
 
+                #rank demotion
                 if self.check_rank_change(initial=player["rank"],final=current_rank) is False:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Demotion " + self.rank_emotes[split_rank], 
                                           description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
-                    await track_channel.send(embed=embed)
+                    await channel.send(embed=embed)
                     continue
                 
                 #now checking if the player went up or down divisions inside of a rank
+
+                #division promo
                 if self.check_tier_change(initial=player["rank"], final=current_rank):
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
                                           description= "`"+player["summoner"] + "` has reached `" + current_rank + "`!",color=self.rank_colors[split_rank])
                     player["rank"] = current_rank
-                    await track_channel.send(embed=embed)
+                    await channel.send(embed=embed)
                     continue
+
+                #division demotion
                 if self.check_tier_change(initial=player["rank"], final=current_rank) is False:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
                                           description= "`"+player["summoner"] + "` has fallen to `" + current_rank + "`",color=self.rank_colors[split_rank])
                     player["rank"] = current_rank
-                    await track_channel.send(embed=embed)
+                    await channel.send(embed=embed)
                     continue
         
-        with open("ranks.json", "w") as outfile:
+        with open(self.ranks_path, "w") as outfile:
             json.dump(data, outfile, indent=4)
 
     @rankup_loop.before_loop
@@ -239,7 +261,7 @@ class league(commands.Cog):
                         dict = {"summoner" : summoner_fullname, "rank" : full_rank, "type" : ranked_type, "queue" : ranked_queue}
                         
                         #checking if user is already added
-                        with open("ranks.json", "r") as file:
+                        with open(self.ranks_path, "r") as file:
                             data = json.load(file)
                         for dictionary in data:
                             if "summoner" in dictionary and dictionary["summoner"] == summoner_fullname:
@@ -247,7 +269,7 @@ class league(commands.Cog):
                                 return
                         #adding user to rank tracking json
                         data.append(dict)
-                        with open("ranks.json", "w") as outfile:
+                        with open(self.ranks_path, "w") as outfile:
                                 json.dump(data, outfile, indent=4)
                         await ctx.send("`" + summoner_fullname + "`" + " `" + ranked_type + "` has been added to rank tracking!")
                         
@@ -258,7 +280,7 @@ class league(commands.Cog):
                         dict = {"summoner" : summoner_fullname, "rank" : full_rank, "type" : ranked_type, "queue" : ranked_queue}
                         
                         #checking if user is already added
-                        with open("ranks.json", "r") as file:
+                        with open(self.ranks_path, "r") as file:
                             data = json.load(file)
                         for dictionary in data:
                             if "summoner" in dictionary and dictionary["summoner"] == summoner_fullname:
@@ -266,7 +288,7 @@ class league(commands.Cog):
                                 return
                         #adding user to rank tracking json
                         data.append(dict)
-                        with open("ranks.json", "w") as outfile:
+                        with open(self.ranks_path, "w") as outfile:
                                 json.dump(data, outfile, indent=4)
                         await ctx.send("`" + summoner_fullname + "`" + " `" + ranked_type + "` has been added to rank tracking!")
                 else:
