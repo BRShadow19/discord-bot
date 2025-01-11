@@ -117,23 +117,31 @@ class league(commands.Cog):
     
     #checks if a players rank went up or down, separate from tiers. Returns True if player climbed, False if player demoted
     def check_rank_change(self, initial, final):
+        print("rank change")
         start = initial.split()[0].lower()
         end = final.split()[0].lower()
+        print(str(self.ranks.index(start)) + " : " + str(self.ranks.index(end)))
         if(self.ranks.index(start) < self.ranks.index(end)):
-            return True
+            return 1
+        elif(self.ranks.index(start) > self.ranks.index(end)):
+            return -1
         else:
-            return False
+            return 0
 
 
 
     #checks if a player's tier went up or down. Returns True if player climbed, False if player demoted.
     def check_tier_change(self, initial, final):
+        print("tier change")
         start = initial.split()[1]
         end = final.split()[1]
+        print(str(self.tiers.index(start)) + " : " + str(self.tiers.index(end)))
         if(self.tiers.index(start) < self.tiers.index(end)):
-            return True
-        else:
-            return False
+            return 1
+        elif(self.tiers.index(start) > self.tiers.index(end)):
+            return -1
+        else: 
+            return 0
         
 
     @commands.command("testembed")
@@ -146,23 +154,23 @@ class league(commands.Cog):
 
     test_count = 0
 
-    ranks_path = "ranks.json"      #for actual bot
-    #anks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
+    #ranks_path = "ranks.json"      #for actual bot
+    ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
 
-    @tasks.loop(minutes=15)
+    @tasks.loop(seconds=15)
     async def rankup_loop(self):
 
         #NOTE:COMMENT OUT WHICHEVER ONE YOU ARE NOT USING OR IT WILL GIVE ATTRIBUTE ERROR
 
         # this is the bot-spam channel for testing
-        #channel = self.bot.get_channel(984494911636258847)
-
+        channel = self.bot.get_channel(984494911636258847)
         # this is the league-track channel for actual use
-        channel =self.bot.get_channel(1326681372907143228)
+        #channel =self.bot.get_channel(1326681372907143228)
 
         with open(self.ranks_path, "r") as file:
             data = json.load(file)
         if len(data) == 0: #if no one is being tracked
+            print("No one being tracked")
             return
         
         for player in data:
@@ -172,7 +180,7 @@ class league(commands.Cog):
                 #if player was unranked and no longer is
                 if player["rank"] == "" or player["rank"] == None:
                     rank_split = current_rank.split()[0].lower()
-                    embed = discord.Embed(title=self.rank_emotes[rank_split] + "Rank Update" + self.rank_emotes[rank_split], description = "`" + player["summoner"] + "` is now `" + current_rank + "`\nWas `unranked`",color=self.rank_colors[rank_split]).set_thumbnail(url=self.rank_icons[rank_split])
+                    embed = discord.Embed(title=self.rank_emotes[rank_split] + "Rank Update" + self.rank_emotes[rank_split], description = "### `" + player["summoner"] + "` is now `" + current_rank + "`\nWas `unranked`",color=self.rank_colors[rank_split]).set_thumbnail(url=self.rank_icons[rank_split])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
@@ -180,26 +188,27 @@ class league(commands.Cog):
                 #if player is now unranked
                 if current_rank == None or current_rank == "":
                     current_rank = ""
-                    embed = discord.Embed(title=self.rank_emotes[current_rank] + "Rank Update" + self.rank_emotes[current_rank], description = "`" + player["summoner"] + "` is now `unranked`\nWas `" + player["rank"] + "`",color=self.rank_colors[current_rank]).set_thumbnail(url=self.rank_icons[current_rank])
+                    embed = discord.Embed(title=self.rank_emotes[current_rank] + "Rank Update" + self.rank_emotes[current_rank], description = "### `" + player["summoner"] + "` is now `unranked`\nWas `" + player["rank"] + "`",color=self.rank_colors[current_rank]).set_thumbnail(url=self.rank_icons[current_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
                 
-                split_rank = current_rank.split()[0].lower() 
+                split_rank = current_rank.split()[0].lower()
+                print(split_rank + " : "+ player["summoner"])
                 #checking if the player demoted or promoted out of the rank as a whole, not just moving up or down a division
 
                 #rank promo
-                if self.check_rank_change(initial=player["rank"],final=current_rank):
+                if self.check_rank_change(initial=player["rank"],final=current_rank) == 1:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Promotion " + self.rank_emotes[split_rank], 
-                                          description= "`"+player["summoner"] + "` has been promoted to `" + current_rank + "`!", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
+                                          description= "### `"+player["summoner"] + "` has been promoted to `" + current_rank + "`!", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue 
 
                 #rank demotion
-                if self.check_rank_change(initial=player["rank"],final=current_rank) is False:
+                if self.check_rank_change(initial=player["rank"],final=current_rank) == -1:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Demotion " + self.rank_emotes[split_rank], 
-                                          description= "`"+player["summoner"] + "` has demoted to `" + current_rank + "`", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
+                                          description= "### `"+player["summoner"] + "` has demoted to `" + current_rank + "`\nWas `" + player["rank"] + "`", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
@@ -207,20 +216,22 @@ class league(commands.Cog):
                 #now checking if the player went up or down divisions inside of a rank
 
                 #division promo
-                if self.check_tier_change(initial=player["rank"], final=current_rank):
+                if self.check_tier_change(initial=player["rank"], final=current_rank) == 1:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
-                                          description= "`"+player["summoner"] + "` has reached `" + current_rank + "`!",color=self.rank_colors[split_rank])
+                                          description= "### `"+player["summoner"] + "` has reached `" + current_rank + "`!",color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
 
                 #division demotion
-                if self.check_tier_change(initial=player["rank"], final=current_rank) is False:
+                
+                if self.check_tier_change(initial=player["rank"], final=current_rank) == -1:
                     embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
-                                          description= "`"+player["summoner"] + "` has fallen to `" + current_rank + "`",color=self.rank_colors[split_rank])
+                                          description= "### `"+player["summoner"] + "` has fallen to `" + current_rank + "`",color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
+                    
         
         with open(self.ranks_path, "w") as outfile:
             json.dump(data, outfile, indent=4)

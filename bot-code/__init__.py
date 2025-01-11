@@ -33,7 +33,7 @@ bot_ids = [1030504910543912961, 984489028877443103]
 
 #for on_message shenanigans
 blackList = ["never"]
-shutup = ["stfu", "shut up", "shut the fuck up", "shush", "silence"]
+shutup = ["stfu", "shut up", "shut the fuck up", "shush", "silence", "fuck you"]
 bot_word = ["bot", "mctaco", "mctaco bot", "mctacobot"]
 combos = list(itertools.product(shutup, bot_word))
 phrases = [" ".join(tup) for tup in combos]
