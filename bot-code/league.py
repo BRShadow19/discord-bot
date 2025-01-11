@@ -119,7 +119,7 @@ class league(commands.Cog):
     def check_rank_change(self, initial, final):
         start = initial.split()[0].lower()
         end = final.split()[0].lower()
-        if(self.ranks.index(start) < self.ranks.index(final)):
+        if(self.ranks.index(start) < self.ranks.index(end)):
             return True
         else:
             return False
@@ -130,7 +130,7 @@ class league(commands.Cog):
     def check_tier_change(self, initial, final):
         start = initial.split()[1]
         end = final.split()[1]
-        if(self.tiers.index(start) < self.tiers.index(final)):
+        if(self.tiers.index(start) < self.tiers.index(end)):
             return True
         else:
             return False

@@ -19,7 +19,7 @@ class Music(commands.Cog):
     self.currentTitle = ''
     self.skipping = False
     self.lq = False
-    self.queueEmbed = None
+    self.queueEmbed = ''
     self.queuePages = []
     self.currentPage = 0
 
