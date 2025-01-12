@@ -154,8 +154,8 @@ class league(commands.Cog):
 
     test_count = 0
 
-    #ranks_path = "ranks.json"      #for actual bot
-    ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
+    ranks_path = "ranks.json"      #for actual bot
+    #ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
 
     @tasks.loop(seconds=15)
     async def rankup_loop(self):
@@ -163,9 +163,9 @@ class league(commands.Cog):
         #NOTE:COMMENT OUT WHICHEVER ONE YOU ARE NOT USING OR IT WILL GIVE ATTRIBUTE ERROR
 
         # this is the bot-spam channel for testing
-        channel = self.bot.get_channel(984494911636258847)
+        #channel = self.bot.get_channel(984494911636258847)
         # this is the league-track channel for actual use
-        #channel =self.bot.get_channel(1326681372907143228)
+        channel =self.bot.get_channel(1326681372907143228)
 
         with open(self.ranks_path, "r") as file:
             data = json.load(file)
