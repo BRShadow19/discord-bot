@@ -157,7 +157,7 @@ class league(commands.Cog):
     ranks_path = "ranks.json"      #for actual bot
     #ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
 
-    @tasks.loop(seconds=15)
+    @tasks.loop(minutes=15)
     async def rankup_loop(self):
 
         #NOTE:COMMENT OUT WHICHEVER ONE YOU ARE NOT USING OR IT WILL GIVE ATTRIBUTE ERROR
@@ -235,6 +235,7 @@ class league(commands.Cog):
         
         with open(self.ranks_path, "w") as outfile:
             json.dump(data, outfile, indent=4)
+            outfile.flush()
 
     @rankup_loop.before_loop
     async def before_rankup_loop(self):
@@ -301,6 +302,7 @@ class league(commands.Cog):
                         data.append(dict)
                         with open(self.ranks_path, "w") as outfile:
                                 json.dump(data, outfile, indent=4)
+                                outfile.flush()
                         await ctx.send("`" + summoner_fullname + "`" + " `" + ranked_type + "` has been added to rank tracking!")
                 else:
                     await ctx.send("Looks like you sent a summoner name that doesn't exist... or there is a server issue")
