@@ -38,6 +38,7 @@ class league(commands.Cog):
      "grandmaster" : "<:grandmaster:1326622106959740928>",
      "challenger" : "<:challenger:1326622105785073704>"
     }
+    league_emote = "<:lol:1328721384083554324>"
 
     #colors for rank based embeds
     rank_colors = {
@@ -69,7 +70,7 @@ class league(commands.Cog):
                  "grandmaster" : icon_url + "grandmaster.png",
                  "challenger" : icon_url + "challenger.png"
                  }
-    
+    lol_logo = "https://brand.riotgames.com/static/a91000434ed683358004b85c95d43ce0/8a20a/lol-logo.png"
     #gifs for rankups NOTE: DOES NOT WORK CURRENTLY, MAY CONTINUE TO TRY AND GET THESE WORKING AS IT WOULD BE REALLY COOL!
     rankup_url = "https://raw.communitydragon.org/pbe/plugins/rcp-fe-lol-static-assets/global/default/videos/ranked/tier-promotion-to-"
     rankup_gifs = {
@@ -86,8 +87,6 @@ class league(commands.Cog):
 
     ranks = ["","iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"]
     tiers = ["IV", "III", "II", "I"]
-
-   #ranks_path = os.getcwd() + "\\bot-code\\ranks.json"
 
     def get_current_rank(self, summoner_name, ranked_type):
             rank = ""
@@ -244,7 +243,22 @@ class league(commands.Cog):
     def sort_by_mastery(self, x):
         return x[1][1]
        
-    
+    @commands.command("loltracklist")
+    async def tracklist(self, ctx):
+
+        with open(self.ranks_path, "r") as file:
+            tracked = json.load(file)
+        if len(tracked) == 0:
+            await ctx.send("No users tracked")
+        output = ""
+        for player in tracked:
+            if player["rank"] == "":
+                output += "`" + player["summoner"] + "` | `unranked` | `" + player["queue"] + "`\n"
+            else:
+                output += "`" + player["summoner"] + "` | `"+ player["rank"] + "` | `" + player["queue"] + "`\n"
+        
+        embed = discord.Embed(title="Tracked Users", description=output, color=discord.Color.from_rgb(9, 102, 217)).set_thumbnail(url=self.lol_logo)
+        await ctx.send(embed=embed)
     
     @commands.command("loltrackadd")
     async def trackadd(self, ctx, *, summoner_name = ""):
