@@ -16,30 +16,14 @@ class league(commands.Cog):
                                 "FLEX": "Flex 5v5",
                                 "TFT": "TFT"
                             }
-    
+
 
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.rankup_loop.is_running():
             print("Starting rankup loop...")
             self.rankup_loop.start()
-        
-    #emotes in testing server
-    rank_emotes = {
-    "" : "<:unranked:1327026483067097178>",
-    "iron" : "<:iron:1326622103478210680>", 
-     "bronze" : "<:bronze:1326622098533257298>",
-     "silver" : "<:silver:1326622102207467540>",
-     "gold" : "<:gold:1326622097279160330>",
-     "platinum" : "<:platinum:1326622099887882331>",
-     "emerald" : "<:emerald:1326622929936453672>",
-     "diamond" : "<:diamond:1326622096222322688>",
-     "master" : "<:master:1326622104522592389>",
-     "grandmaster" : "<:grandmaster:1326622106959740928>",
-     "challenger" : "<:challenger:1326622105785073704>"
-    }
-    league_emote = "<:lol:1328721384083554324>"
-
+    
     #colors for rank based embeds
     rank_colors = {
         "" : discord.Color.from_rgb(0,0,0),
@@ -47,7 +31,7 @@ class league(commands.Cog):
      "bronze" : discord.Color.from_rgb(156, 56, 9),
      "silver" : discord.Color.from_rgb(136, 141, 143),
      "gold" : discord.Color.from_rgb(219, 165, 18),
-     "platinum" : discord.Color.from_rgb(39, 230, 172),
+     "platinum" : discord.Color.from_rgb(73, 138, 154),
      "emerald" : discord.Color.from_rgb(36, 166, 27),
      "diamond" : discord.Color.from_rgb(6, 130, 201),
      "master" : discord.Color.from_rgb(222, 71, 222),
@@ -55,36 +39,20 @@ class league(commands.Cog):
      "challenger" : discord.Color.from_rgb(0, 177, 252)
     }
 
-    #pngs for ranked icons, from https://raw.communitydragon.org/
-    icon_url = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/"
-    rank_icons= {
-                 "" : icon_url + "unranked.png",
-                 "iron" : icon_url + "iron.png",
-                 "bronze" : icon_url + "bronze.png",
-                 "silver" : icon_url + "silver.png",
-                 "gold" : icon_url + "gold.png",
-                 "platinum" : icon_url + "platinum.png",
-                 "emerald" : icon_url + "emerald.png",
-                 "diamond" : icon_url + "diamond.png",
-                 "master" : icon_url + "master.png",
-                 "grandmaster" : icon_url + "grandmaster.png",
-                 "challenger" : icon_url + "challenger.png"
-                 }
-    lol_logo = "https://brand.riotgames.com/static/a91000434ed683358004b85c95d43ce0/8a20a/lol-logo.png"
-    #gifs for rankups NOTE: DOES NOT WORK CURRENTLY, MAY CONTINUE TO TRY AND GET THESE WORKING AS IT WOULD BE REALLY COOL!
-    rankup_url = "https://raw.communitydragon.org/pbe/plugins/rcp-fe-lol-static-assets/global/default/videos/ranked/tier-promotion-to-"
-    rankup_gifs = {
-                "bronze" : rankup_url + "bronze.webm",
-                "silver" : rankup_url + "silver.webm",
-                "gold" : rankup_url + "gold.webm",
-                "platinum" : rankup_url + "platinum.webm",
-                "emerald" : rankup_url + "emerald.webm",
-                "diamond" : rankup_url + "diamond.webm",
-                "master" : rankup_url + "master.webm",
-                "grandmaster" : rankup_url + "grandmaster.webm",
-                "challenger" : rankup_url + "challenger.webm"
-                }
+    #NOTE: comment out whichever one you are not using 
+    #league_path = 'league.json' #actual bot
+    league_path = os.getcwd() + "\\bot-code\\league.json" #local
+    #ranks_path = "ranks.json"      #for actual bot
+    ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
 
+    #getting data from league.json
+    
+    def get_container(self, path):
+        with open(path, "r") as file:
+                container = json.load(file)
+        return container
+    
+    #for index comparison in check_{rank/tier}_change()
     ranks = ["","iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"]
     tiers = ["IV", "III", "II", "I"]
 
@@ -141,33 +109,37 @@ class league(commands.Cog):
             return -1
         else: 
             return 0
-        
 
+    tft_path = os.getcwd() + "\\bot-code\\tft.json"
     @commands.command("testembed")
     async def embedtest(self, ctx):
         test_channel = self.bot.get_channel(984494911636258847)
+        container = self.get_container(self.tft_path)
+        '''
         for rank in self.ranks[2:]:
-            embed = discord.Embed(title=self.rank_emotes[rank] + " Rank Update " + self.rank_emotes[rank], description="`insert player name` has reached `insert rank`!",
-                                        color=self.rank_colors[rank]).set_thumbnail(url=self.rank_icons[rank])
-            await test_channel.send(embed=embed)
-
-    test_count = 0
-
-    ranks_path = "ranks.json"      #for actual bot
-    #ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
+            embed = discord.Embed(title=container["rank_emotes"][rank] + " Rank Update " + container["rank_emotes"][rank], description="`insert player name` has reached `insert rank`!",
+                                        color=self.rank_colors[rank]).set_thumbnail(url=container["rank_icons"][rank])
+        '''
+        one_star = "★"
+        two_star = "★★"
+        three_star = "★★★"
+        four_star = "★★★★"
+        embed = discord.Embed(title="`{insert player name}'s` recent match", description="### Placement : `1`\n### Level : `9`\n### Stage : `6-5`", color=discord.Color.from_rgb(255, 215,0)).set_thumbnail(url="https://seeklogo.com/images/T/teamfight-tactics-logo-4B66ABB0E4-seeklogo.com.png")
+        embed.add_field(name="Units", value="`Silco" + two_star + "\nMordekaiser" + two_star + "\nDr. Mundo" + two_star + "\nLeblanc" + one_star + "\nGaren" +two_star+ "\nElise"+two_star+"\nCassiopeia"+two_star+"\nVladimir"+three_star+"\nMorgana"+two_star+"`", inline=True)
+        embed.add_field(name="Traits", value="`Black Rose | 5\nDominator | 4\nWatcher | 2\nSorcerer | 2\nEmissary | 1`")
+        await test_channel.send(embed=embed)
 
     @tasks.loop(minutes=15)
     async def rankup_loop(self):
-
         #NOTE:COMMENT OUT WHICHEVER ONE YOU ARE NOT USING OR IT WILL GIVE ATTRIBUTE ERROR
-
         # this is the bot-spam channel for testing
-        #channel = self.bot.get_channel(984494911636258847)
+        channel = self.bot.get_channel(984494911636258847)
         # this is the league-track channel for actual use
-        channel =self.bot.get_channel(1326681372907143228)
-
-        with open(self.ranks_path, "r") as file:
+        #channel =self.bot.get_channel(1326681372907143228)
+        with open(self.ranks_path, 'r') as file, open(self.league_path, 'r') as contain:
             data = json.load(file)
+            container = json.load(contain)
+
         if len(data) == 0: #if no one is being tracked
             print("No one being tracked")
             return
@@ -179,7 +151,7 @@ class league(commands.Cog):
                 #if player was unranked and no longer is
                 if player["rank"] == "" or player["rank"] == None:
                     rank_split = current_rank.split()[0].lower()
-                    embed = discord.Embed(title=self.rank_emotes[rank_split] + "Rank Update" + self.rank_emotes[rank_split], description = "### `" + player["summoner"] + "` is now `" + current_rank + "`\nWas `unranked`",color=self.rank_colors[rank_split]).set_thumbnail(url=self.rank_icons[rank_split])
+                    embed = discord.Embed(title=container["rank_emotes"][rank_split] + "Rank Update" + container["rank_emotes"][rank_split], description = "### `" + player["summoner"] + "` is now `" + current_rank + "`\nWas `unranked`",color=self.rank_colors[rank_split]).set_thumbnail(url=container["rank_icons"][rank_split])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
@@ -187,7 +159,7 @@ class league(commands.Cog):
                 #if player is now unranked
                 if current_rank == None or current_rank == "":
                     current_rank = ""
-                    embed = discord.Embed(title=self.rank_emotes[current_rank] + "Rank Update" + self.rank_emotes[current_rank], description = "### `" + player["summoner"] + "` is now `unranked`\nWas `" + player["rank"] + "`",color=self.rank_colors[current_rank]).set_thumbnail(url=self.rank_icons[current_rank])
+                    embed = discord.Embed(title=container["rank_emotes"][current_rank] + "Rank Update" + container["rank_emotes"][current_rank], description = "### `" + player["summoner"] + "` is now `unranked`\nWas `" + player["rank"] + "`",color=self.rank_colors[current_rank]).set_thumbnail(url=container["rank_icons"][current_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
@@ -198,16 +170,16 @@ class league(commands.Cog):
 
                 #rank promo
                 if self.check_rank_change(initial=player["rank"],final=current_rank) == 1:
-                    embed = discord.Embed(title=self.rank_emotes[split_rank] + " Promotion " + self.rank_emotes[split_rank], 
-                                          description= "### `"+player["summoner"] + "` has been promoted to `" + current_rank + "`!", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
+                    embed = discord.Embed(title=container["rank_emotes"][split_rank] + " Promotion " + container["rank_emotes"][split_rank], 
+                                          description= "### `"+player["summoner"] + "` has been promoted to `" + current_rank + "`!", color=self.rank_colors[split_rank]).set_thumbnail(url=container["rank_icons"][split_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue 
 
                 #rank demotion
                 if self.check_rank_change(initial=player["rank"],final=current_rank) == -1:
-                    embed = discord.Embed(title=self.rank_emotes[split_rank] + " Demotion " + self.rank_emotes[split_rank], 
-                                          description= "### `"+player["summoner"] + "` has demoted to `" + current_rank + "`\nWas `" + player["rank"] + "`", color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
+                    embed = discord.Embed(title=container["rank_emotes"][split_rank] + " Demotion " + container["rank_emotes"][split_rank], 
+                                          description= "### `"+player["summoner"] + "` has demoted to `" + current_rank + "`\nWas `" + player["rank"] + "`", color=self.rank_colors[split_rank]).set_thumbnail(url=container["rank_icons"][split_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
@@ -216,8 +188,8 @@ class league(commands.Cog):
 
                 #division promo
                 if self.check_tier_change(initial=player["rank"], final=current_rank) == 1:
-                    embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
-                                          description= "### `"+player["summoner"] + "` has reached `" + current_rank + "`!",color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
+                    embed = discord.Embed(title=container["rank_emotes"][split_rank] + " Rank Update " + container["rank_emotes"][split_rank], 
+                                          description= "### `"+player["summoner"] + "` has reached `" + current_rank + "`!",color=self.rank_colors[split_rank]).set_thumbnail(url=container["rank_icons"][split_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
@@ -225,8 +197,8 @@ class league(commands.Cog):
                 #division demotion
                 
                 if self.check_tier_change(initial=player["rank"], final=current_rank) == -1:
-                    embed = discord.Embed(title=self.rank_emotes[split_rank] + " Rank Update " + self.rank_emotes[split_rank], 
-                                          description= "### `"+player["summoner"] + "` has fallen to `" + current_rank + "`",color=self.rank_colors[split_rank]).set_thumbnail(url=self.rank_icons[split_rank])
+                    embed = discord.Embed(title=container["rank_emotes"][split_rank] + " Rank Update " + container["rank_emotes"][split_rank], 
+                                          description= "### `"+player["summoner"] + "` has fallen to `" + current_rank + "`",color=self.rank_colors[split_rank]).set_thumbnail(url=container["rank_icons"][split_rank])
                     player["rank"] = current_rank
                     await channel.send(embed=embed)
                     continue
@@ -245,7 +217,7 @@ class league(commands.Cog):
        
     @commands.command("loltracklist")
     async def tracklist(self, ctx):
-
+        container = self.get_container(self.league_path)
         with open(self.ranks_path, "r") as file:
             tracked = json.load(file)
         if len(tracked) == 0:
@@ -257,7 +229,7 @@ class league(commands.Cog):
             else:
                 output += "`" + player["summoner"] + "` | `"+ player["rank"] + "` | `" + player["queue"] + "`\n"
         
-        embed = discord.Embed(title="Tracked Users", description=output, color=discord.Color.from_rgb(9, 102, 217)).set_thumbnail(url=self.lol_logo)
+        embed = discord.Embed(title="Tracked Users", description=output, color=discord.Color.from_rgb(9, 102, 217)).set_thumbnail(url=container["logo"])
         await ctx.send(embed=embed)
     
     @commands.command("loltrackadd")
@@ -387,6 +359,7 @@ class league(commands.Cog):
                                             after a '$'. Defaults to "".
         """
         if len(summoner_name) > 0:
+            container = self.get_container(self.league_path)
             if "$" in summoner_name:
                 # Spaces must be "%20" in a URL
                 input = summoner_name.split("$")
@@ -413,7 +386,7 @@ class league(commands.Cog):
                             rank = rank[0] + rank[1:].lower()   # 'BRONZE' -> 'Bronze'
                             tier = data[1]
                             embed = discord.Embed(title=":trophy: Summoner Rank :trophy:", description=name,
-                                                color=self.rank_colors[rank.lower()]).set_thumbnail(url=self.rank_icons[rank.lower()])
+                                                color=self.rank_colors[rank.lower()]).set_thumbnail(url=container["rank_icons"][rank.lower()])
                             lp = str(data[2])
                             ranked_queue = self.ranked_types[ranked_type]
                             embed.add_field(name=ranked_queue, value=rank+" "+tier+", "+lp+" LP", inline=False)

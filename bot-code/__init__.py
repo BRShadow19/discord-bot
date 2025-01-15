@@ -15,10 +15,11 @@ import weather
 import util
 import osu
 import league
+import tft
 # Change this when GameAPI is running in a container
 GAMEAPI_URL = "http://127.0.0.1:5000"
 
-bot_command_prefix = 'm!'
+bot_command_prefix = 'm?'
 bot_description = 'A simple music bot'
 
 # Create our bot object
@@ -141,6 +142,7 @@ asyncio.run(weather.setup(bot))
 asyncio.run(util.setup(bot))
 asyncio.run(osu.setup(bot))
 asyncio.run(league.setup(bot, GAMEAPI_URL))
+asyncio.run(tft.setup(bot, GAMEAPI_URL))
 
 # Start up the bot
 bot.run(token)

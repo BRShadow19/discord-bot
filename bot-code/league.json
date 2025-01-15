@@ -1,0 +1,31 @@
+{
+    "rank_emotes" : {
+                    "" : "<:unranked:1327026483067097178>",
+                "iron" : "<:iron:1326622103478210680>", 
+                "bronze" : "<:bronze:1326622098533257298>",
+                "silver" : "<:silver:1326622102207467540>",
+                "gold" : "<:gold:1326622097279160330>",
+                "platinum" : "<:platinum:1326622099887882331>",
+                "emerald" : "<:emerald:1326622929936453672>",
+                "diamond" : "<:diamond:1326622096222322688>",
+                "master" : "<:master:1326622104522592389>",
+                "grandmaster" : "<:grandmaster:1326622106959740928>",
+                "challenger" : "<:challenger:1326622105785073704>"
+                    },
+    "league_emote" : "<:lol:1328721384083554324>",
+    "rank_icons" : {
+                "" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/unranked.png",
+                "iron" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/iron.png",
+                "bronze" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/bronze.png",
+                "silver" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/silver.png",
+                "gold" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/gold.png",
+                "platinum" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/platinum.png",
+                "emerald" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/emerald.png",
+                "diamond" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/diamond.png",
+                "master" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/master.png",
+                "grandmaster" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/grandmaster.png",
+                "challenger" : "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/challenger.png"
+                    },
+    "logo" : "https://brand.riotgames.com/static/a91000434ed683358004b85c95d43ce0/8a20a/lol-logo.png"
+
+}
