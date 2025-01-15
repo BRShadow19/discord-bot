@@ -40,10 +40,10 @@ class league(commands.Cog):
     }
 
     #NOTE: comment out whichever one you are not using 
-    #league_path = 'league.json' #actual bot
-    league_path = os.getcwd() + "\\bot-code\\league.json" #local
-    #ranks_path = "ranks.json"      #for actual bot
-    ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
+    league_path = 'league.json' #actual bot
+    #league_path = os.getcwd() + "\\bot-code\\league.json" #local
+    ranks_path = "ranks.json"      #for actual bot
+    #ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
 
     #getting data from league.json
     
@@ -110,6 +110,7 @@ class league(commands.Cog):
         else: 
             return 0
 
+
     tft_path = os.getcwd() + "\\bot-code\\tft.json"
     @commands.command("testembed")
     async def embedtest(self, ctx):
@@ -133,9 +134,9 @@ class league(commands.Cog):
     async def rankup_loop(self):
         #NOTE:COMMENT OUT WHICHEVER ONE YOU ARE NOT USING OR IT WILL GIVE ATTRIBUTE ERROR
         # this is the bot-spam channel for testing
-        channel = self.bot.get_channel(984494911636258847)
+        #channel = self.bot.get_channel(984494911636258847)
         # this is the league-track channel for actual use
-        #channel =self.bot.get_channel(1326681372907143228)
+        channel =self.bot.get_channel(1326681372907143228)
         with open(self.ranks_path, 'r') as file, open(self.league_path, 'r') as contain:
             data = json.load(file)
             container = json.load(contain)

@@ -24,6 +24,8 @@ class tft(commands.Cog):
     '''
     #league_path = 'league.json' #actual bot
     league_path = os.getcwd() + "\\bot-code\\league.json" #local
+    #tft_path = 'tft.json' #actual bot
+    tft_path = os.getcwd() + "\\bot-code\\tft.json" #local
 
     def get_container(self, path):
         with open(path, "r") as file:
@@ -42,6 +44,14 @@ class tft(commands.Cog):
      "master" : discord.Color.from_rgb(222, 71, 222),
      "grandmaster" : discord.Color.from_rgb(173, 17, 54),
      "challenger" : discord.Color.from_rgb(0, 177, 252)
+    }
+
+    result_colors = {
+        "1" : discord.Color.from_rgb(219, 165, 18),
+        "2" : discord.Color.from_rgb(136, 141, 143),
+        "3" : discord.Color.from_rgb(156, 56, 9),
+        "4" : discord.Color.from_rgb(64, 49, 42)
+
     }
 
     @commands.command("tftrank")
@@ -113,6 +123,7 @@ class tft(commands.Cog):
             summoner_name (str, optional): Name of the summoner to get the detailed match stats of, and the match
                                             after a '$'. Defaults to "".
         """      
+        container = self.get_container(self.tft_path)
         if len(summoner_name) > 0:
             if "$" in summoner_name:
                 # Spaces must be "%20" in a URL
@@ -128,8 +139,10 @@ class tft(commands.Cog):
                 try:
                     int(input[1])
                 except ValueError:
-                    await ctx.send("This command only accepts integers as a parameter, try adding a number after the $ instead. EX : `m!lolmatch ShadowShark19#190 $1`")
+                    await ctx.send("This command only accepts integers as a parameter, try adding a number after the $ instead. EX : `m!tftmatch ShadowShark19#190 $1`")
                     return
+                
+                
                 #TODO: change this for tft xdd (its still just ctrl c ctrl v from league.py)
                 start = input[1]
                 url = self.gameAPI_url + "/match/" + summoner_name +"/" + tagline + "/" +start
@@ -140,37 +153,32 @@ class tft(commands.Cog):
                         match = data[0]
                         name = input[0]
                         did_win = match["win"]
-                        queue_type = match["queueType"]
-                        if did_win:
-                            embed = discord.Embed(title=":crossed_swords: Detailed Stats for Match "+start+" (Victory) :crossed_swords:", description=name+"\n"+queue_type,
-                                                color=discord.Color.gold())
+                        placement = match["placement"]
+                        level = match["level"]
+                        round_reached = match["round"]
+                        time = match["time_elim"]
+                        traits = match["traits"]
+                        units = match["units"]
+
+                        if did_win == True:
+                            color = self.result_colors[placement]
                         else:
-                            embed = discord.Embed(title=":crossed_swords: Detailed Stats for Match "+start+" (Defeat) :crossed_swords:", description=name+"\n"+queue_type,
-                                                color=discord.Color.gold())
-                        kda = match["KDA"]
-                        champion = match["championName"]
-                        cs = match["CS"]
-                        cs_per_min = match["CS/min"]
-                        champion_damage = match["championDamage"]
-                        damage_per_minute = match["damage/min"]
-                        duration = match["duration"]
-                        gold = match["goldEarned"]
-                        gold_per_minute = match["gold/min"]
-                        self_mit_damage = match["selfMitigatedDamage"]
-                        vision_score = match["visionScore"]
-                        multikill = match["largestMultikill"]
-                        largest_kill = ""
-                        if multikill >= 3:
-                            largest_kill = "\n"+match["multikillType"]
-                        embed.add_field(name="Match Duration", value=duration, inline=False)
-                        embed.add_field(name="Champion", value=champion, inline=False)
-                        embed.add_field(name="K/D/A", value=kda+largest_kill, inline=False)
-                        embed.add_field(name="CS", value="Total CS: "+cs+"\nCS/min: "+cs_per_min, inline=False)
-                        embed.add_field(name="Damage to Champions", value="Total Damage: "+champion_damage+"\nDamage/min: "+damage_per_minute, inline=False)
-                        embed.add_field(name="Gold Earned", value="Total Gold: "+gold+"\nGold/min: "+gold_per_minute, inline=False)
-                        embed.add_field(name="Self-Mitigated Damage", value=self_mit_damage, inline=False)
-                        embed.add_field(name="Vision Score", value=vision_score, inline=False)
-                        embed.set_footer(text="To view multiple matches -> m!lolmatches")
+                            color = discord.Color.from_rgb(48, 48, 48)
+                        traits_out = "`"
+                        units_out ="`"
+                        for trait in traits:
+                            traits_out += trait["name"] + " | " + str(trait["num_units"]) + "\n"
+                        traits_out += "`"
+                        for unit in units:
+                            units_out += unit["name"] + str(container["star_levels_str"][unit["star"]]) + "\n"
+                        units_out += "`"
+                        
+                        embed = discord.Embed(title="`" + name + "'s` recent TFT match", 
+                                              description="### Placement : `" + placement + "`\n### Level : `" + level + "`\n### Round : `" + round_reached + "`",
+                                              color=color).set_thumbnail(url="https://seeklogo.com/images/T/teamfight-tactics-logo-4B66ABB0E4-seeklogo.com.png")
+                        embed.add_field(name="Units", value=units_out, inline=True)
+                        embed.add_field(name="Traits", value=traits_out, inline=True)
+                        embed.set_footer(text="Match length : " + time)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send("No recent matches found for that summoner :man_shrugging:")

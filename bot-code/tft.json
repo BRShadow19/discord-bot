@@ -258,6 +258,12 @@
             "two" : "https://static.wikia.nocookie.net/leagueoflegends/images/7/78/2_Star.png/revision/latest?cb=20190621125013",
             "three" : "https://static.wikia.nocookie.net/leagueoflegends/images/7/74/3_Star.png/revision/latest?cb=20190621125014",
             "four" : "https://static.wikia.nocookie.net/leagueoflegends/images/7/74/4_Star.png/revision/latest?cb=20200924055236"
+        },
+        "star_levels_str" : {
+            "1" : "★",
+            "2" : "★★",
+            "3" : "★★★",
+            "4" : "★★★★"
         }
         
 }
