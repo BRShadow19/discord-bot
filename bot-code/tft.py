@@ -54,6 +54,13 @@ class tft(commands.Cog):
 
     }
 
+    star_levels_str= { #this apparently breaks when in tft.json and outputs "˜…â˜…", so its gotta be here i suppose..
+            "1" : "★",
+            "2" : "★★",
+            "3" : "★★★",
+            "4" : "★★★★"
+        }
+
     @commands.command("tftrank")
     async def rank(self, ctx, *, summoner_name=""):
         """Call GameAPI (https://github.com/BRShadow19/GameAPI) to gather the TFT ranked level
@@ -164,13 +171,16 @@ class tft(commands.Cog):
                             color = self.result_colors[placement]
                         else:
                             color = discord.Color.from_rgb(48, 48, 48)
-                        traits_out = "`"
+                        traits_out = ""
                         units_out ="`"
                         for trait in traits:
-                            traits_out += trait["name"] + " | " + str(trait["num_units"]) + "\n"
+                            if trait["style"] > 0:
+                                trait_name = container["traits_code_to_real"][trait["name"]]
+                                traits_out += container["trait_icons_emote"][trait_name] + "`" + trait_name + " | " + str(trait["num_units"]) + "` " + container["trait_tier_emotes"][str(trait["style"])] + "\n"
                         traits_out += "`"
+                        print(traits)
                         for unit in units:
-                            units_out += unit["name"] + str(container["star_levels_str"][unit["star"]]) + "\n"
+                            units_out += container["units_code_to_real"][unit["name"]] + self.star_levels_str[unit["star"]] + "\n"
                         units_out += "`"
                         
                         embed = discord.Embed(title="`" + name + "'s` recent TFT match", 
