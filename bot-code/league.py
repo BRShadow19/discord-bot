@@ -77,7 +77,7 @@ class league(commands.Cog):
                             #print("this two :3" + str(rank))
                             return rank
                         else:
-                            rank = ""
+                            rank = "ERROR " + str(response.status_code)
                             #print("this one :3")
                             return rank
             return rank
@@ -137,6 +137,9 @@ class league(commands.Cog):
         #channel = self.bot.get_channel(984494911636258847)
         # this is the league-track channel for actual use
         channel =self.bot.get_channel(1326681372907143228)
+        # #error-response in testing server
+        error_channel = self.bot.get_channel(1329851031055634474)
+
         with open(self.ranks_path, 'r') as file, open(self.league_path, 'r') as contain:
             data = json.load(file)
             container = json.load(contain)
@@ -146,9 +149,17 @@ class league(commands.Cog):
             return
         
         for player in data:
+            
             current_rank = self.get_current_rank(player["summoner"], player["type"])
-            if current_rank != player["rank"]:
 
+            #if riot API responses with an error
+            if current_rank.startswith("ERROR"):
+                errorstr = "`" + player["summoner"] + " " + player["type"] + "` | `" + current_rank + "`"
+                await error_channel.send(errorstr)
+                continue
+            
+            #if their rank changed
+            if current_rank != player["rank"]:
                 #if player was unranked and no longer is
                 if player["rank"] == "" or player["rank"] == None:
                     rank_split = current_rank.split()[0].lower()
