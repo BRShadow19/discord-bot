@@ -77,9 +77,11 @@ class league(commands.Cog):
                             #print("this two :3" + str(rank))
                             return rank
                         else:
-                            rank = "ERROR " + str(response.status_code)
+                            rank = ""
                             #print("this one :3")
                             return rank
+                    else:
+                        rank = "ERROR " + str(response.status_code)
             return rank
     
     #checks if a players rank went up or down, separate from tiers. Returns True if player climbed, False if player demoted
