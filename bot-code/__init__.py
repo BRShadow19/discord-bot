@@ -108,7 +108,7 @@ async def on_message(message):
         if message.author.id == 570409691620966413 and sal_off_cd >= time.time():
             #soontm
             sal_off_cd = time.time() + sal_cd
-            return
+            
 
         #if told to shutup -> replies :(
         for phrase in phrases:
