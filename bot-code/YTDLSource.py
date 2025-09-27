@@ -3,7 +3,7 @@ import asyncio
 import yt_dlp
 
 # Suppress noise about console usage from errors
-yt_dlp.utils.bug_reports_message = lambda: ''
+yt_dlp.utils.bug_reports_message = lambda *args, **kwargs: ''
 
 ffmpeg_options = {
     'options': '-vn',
