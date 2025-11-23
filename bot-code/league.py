@@ -283,6 +283,7 @@ class league(commands.Cog):
                         data.append(dict)
                         with open(self.ranks_path, "w") as outfile:
                                 json.dump(data, outfile, indent=4)
+                                outfile.flush()
                         await ctx.send("`" + summoner_fullname + "`" + " `" + ranked_type + "` has been added to rank tracking!")
                         
                     else:
