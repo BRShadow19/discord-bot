@@ -2,20 +2,24 @@
 FROM rockylinux:9
 
 RUN dnf update -y && \
-dnf install python3 -y && \
-dnf install python3-pip -y
-RUN yes | pip3 install --upgrade pip
+dnf install python3.12 python3.12-devel -y && \
+dnf install python3.12-pip -y
+RUN yes | python3.12 -m pip install --upgrade pip
 RUN dnf -y install --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-9.noarch.rpm && \
 dnf  config-manager --set-enabled crb
-RUN dnf install ffmpeg -y
-RUN dnf install git -y
+RUN dnf install ffmpeg libffi-devel -y
+RUN dnf install git unzip -y
 
-RUN yes | pip3 install -U discord.py && yes | pip3 install asyncio && \
- yes | pip3 install pafy && yes | pip3 install -U yt_dlp[default] && \
- yes | pip3 install git+https://github.com/ytdl-org/youtube-dl.git@master#egg=youtube_dl && \
- yes | pip3 install spotipy && yes | pip3 install pynacl && yes | pip3 install python-dotenv && \
- yes | pip3 install pytz && \
- yes | pip3 install youtube-search
+
+RUN yes | python3.12 -m pip install asyncio && \
+ yes | python3.12 -m pip install pafy && yes | python3.12 -m pip install -U yt_dlp[default] && \
+ yes | python3.12 -m pip install youtube_dl && \
+ yes | python3.12 -m pip install spotipy && yes | python3.12 -m pip install pynacl && yes | python3.12 -m pip install python-dotenv && \
+ yes | python3.12 -m pip install pytz && \
+ yes | python3.12 -m pip install youtube-search && \
+ yes | python3.12 -m pip install "discord.py[voice] @ git+https://github.com/rapptz/discord.py"
+
+RUN curl -fsSL https://deno.land/install.sh | sh
 
 # Discord bot token
 ENV TOKEN=******************************
@@ -32,7 +36,4 @@ ENV OSU=****************
 # OSU APIv2 ID
 ENV OSU_ID=******
 
-COPY bot-code /
-RUN chmod +x __init__.py
-
-CMD ["python3", "./__init__.py"]
+CMD ["python3.12", "/bot-code/__init__.py"]
