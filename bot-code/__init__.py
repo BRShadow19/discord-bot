@@ -6,9 +6,18 @@ import os
 import itertools
 import random
 import time
+import logging
 
 load_dotenv('token.env')    # Load environment variables from token.env
 token = os.environ.get('TOKEN')     # The Discord API bot token
+
+# Optional voice diagnostics: set AUDIO_DEBUG=1 (environment variable or token.env) to log
+# discord.py voice state changes at DEBUG (low volume). bot.run() below sets the root logger to
+# INFO; this raises discord.player ("Not connected, waiting" / "Aborting playback") and
+# discord.voice_state (connection changes) to DEBUG.
+if os.environ.get('AUDIO_DEBUG', '').lower() in ('1', 'true', 'yes'):
+    logging.getLogger('discord.player').setLevel(logging.DEBUG)
+    logging.getLogger('discord.voice_state').setLevel(logging.DEBUG)
 
 import music
 import weather
