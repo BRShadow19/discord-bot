@@ -9,10 +9,11 @@ RUN dnf -y install --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-
 dnf  config-manager --set-enabled crb
 RUN dnf install ffmpeg libffi-devel -y
 RUN dnf install git unzip -y
-
+#RUN git clone https://github.com/DA-344/d.py.git && cd d.py/ && python3.12 -m pip install -U .[voice]
 
 RUN yes | python3.12 -m pip install asyncio && \
- yes | python3.12 -m pip install pafy && yes | python3.12 -m pip install -U yt_dlp[default] && \
+ yes | python3.12 -m pip install pafy && yes | python3.12 -m pip install -U --pre "yt_dlp[default]" && \
+# yes | python3.12 -m pip install git+https://github.com/ytdl-org/youtube-dl.git@master#egg=youtube_dl && \
  yes | python3.12 -m pip install youtube_dl && \
  yes | python3.12 -m pip install spotipy && yes | python3.12 -m pip install pynacl && yes | python3.12 -m pip install python-dotenv && \
  yes | python3.12 -m pip install pytz && \
@@ -22,18 +23,21 @@ RUN yes | python3.12 -m pip install asyncio && \
 RUN curl -fsSL https://deno.land/install.sh | sh
 
 # Discord bot token
-ENV TOKEN=******************************
+ENV TOKEN=
 # YouTube API key
-ENV KEY=*************************
+ENV KEY=
 # Weather API key
-ENV WEA=***************
+ENV WEA=
 # Spotify API key
-ENV SPOTIFY_ID=**************
+ENV SPOTIFY_ID=
 # Spotify API secret
-ENV SPOTIFY_SECRET=**********
+ENV SPOTIFY_SECRET=
 # OSU APIv2 secret
-ENV OSU=****************
+ENV OSU=
 # OSU APIv2 ID
-ENV OSU_ID=******
+ENV OSU_ID=
+
+#COPY bot-code /
+#RUN chmod +x __init__.py
 
 CMD ["python3.12", "/bot-code/__init__.py"]
