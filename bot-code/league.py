@@ -40,9 +40,9 @@ class league(commands.Cog):
     }
 
     #NOTE: comment out whichever one you are not using 
-    league_path = 'league.json' #actual bot
+    league_path = '/bot-code/league.json' #actual bot
     #league_path = os.getcwd() + "\\bot-code\\league.json" #local
-    ranks_path = "ranks.json"      #for actual bot
+    ranks_path = "/bot-code/ranks.json"      #for actual bot
     #ranks_path = os.getcwd() + "\\bot-code\\ranks.json" #local testing
 
     #getting data from league.json
