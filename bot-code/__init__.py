@@ -11,10 +11,15 @@ import logging
 load_dotenv('token.env')    # Load environment variables from token.env
 token = os.environ.get('TOKEN')     # The Discord API bot token
 
+# Configure logging on the root logger so our own loggers (e.g. musicbot.audio) get the same
+# timestamped format as discord.py's. By default bot.run() only sets up the 'discord' logger,
+# which left musicbot.audio INFO messages unprinted and its warnings without timestamps.
+# bot.run() is called with log_handler=None below so discord's messages aren't printed twice.
+discord.utils.setup_logging(level=logging.INFO)
+
 # Optional voice diagnostics: set AUDIO_DEBUG=1 (environment variable or token.env) to log
-# discord.py voice state changes at DEBUG (low volume). bot.run() below sets the root logger to
-# INFO; this raises discord.player ("Not connected, waiting" / "Aborting playback") and
-# discord.voice_state (connection changes) to DEBUG.
+# discord.py voice state changes at DEBUG (low volume): discord.player ("Not connected,
+# waiting" / "Aborting playback") and discord.voice_state (connection changes).
 if os.environ.get('AUDIO_DEBUG', '').lower() in ('1', 'true', 'yes'):
     logging.getLogger('discord.player').setLevel(logging.DEBUG)
     logging.getLogger('discord.voice_state').setLevel(logging.DEBUG)
@@ -153,8 +158,8 @@ asyncio.run(osu.setup(bot))
 asyncio.run(league.setup(bot, GAMEAPI_URL))
 asyncio.run(tft.setup(bot, GAMEAPI_URL))
 
-# Start up the bot
-bot.run(token)
+# Start up the bot (logging is configured above, so skip discord.py's own setup)
+bot.run(token, log_handler=None)
 
 
 
