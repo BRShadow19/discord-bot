@@ -17,6 +17,12 @@ token = os.environ.get('TOKEN')     # The Discord API bot token
 # bot.run() is called with log_handler=None below so discord's messages aren't printed twice.
 discord.utils.setup_logging(level=logging.INFO)
 
+# Redact secrets, URL query strings (the googlevideo stream URL contains the host's public IP)
+# and IPv4 addresses from everything logged, so logs are safe to paste. Must run after
+# load_dotenv() above, because it reads the secret environment variables.
+import log_redact
+log_redact.install()
+
 # Optional voice diagnostics: set AUDIO_DEBUG=1 (environment variable or token.env) to log
 # discord.py voice state changes at DEBUG (low volume): discord.player ("Not connected,
 # waiting" / "Aborting playback") and discord.voice_state (connection changes).
