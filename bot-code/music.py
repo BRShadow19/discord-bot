@@ -78,7 +78,7 @@ class Music(commands.Cog):
         if not is_playlist:
           # Use youtube_dl to search for the video and create a YTDLSource object
           
-          player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+          player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop)
           song_queue.append(player.title)
           # Send a message of what song was added to the queue, as well as the length of the song
           await ctx.send(':white_check_mark: Now in line -> **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
@@ -93,7 +93,7 @@ class Music(commands.Cog):
           async with ctx.typing():
             # Use youtube_dl to search for the video and create a YTDLSource object
             #url = await link_utils.generate_url(url)
-            player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+            player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop)
             ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
             # Send a message of what song was added to the queue, as well as the length of the song
             message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
@@ -125,7 +125,7 @@ class Music(commands.Cog):
             await asyncio.sleep(3)
           for songs in islice(cycle(song_queue), len(song_queue) * 100):
             url = await link_utils.generate_url(songs)
-            player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True) 
+            player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop) 
             ctx.voice_client.play(player)
             message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
             await asyncio.sleep(10)
@@ -136,7 +136,7 @@ class Music(commands.Cog):
       else:
         try:
           url = await link_utils.generate_url(song_queue[0])
-          player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+          player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop)
           ctx.voice_client.play(player)
           song_queue.pop(0)
           message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
@@ -223,7 +223,7 @@ class Music(commands.Cog):
     """    
     # Use the title of the current song to create a new YTDLSource object based on that song
     # This new object will not have been used yet, and thus will have the full duration
-    song = await YTDL.YTDLSource.from_url(player.title, loop=self.bot.loop, stream=True)
+    song = await YTDL.YTDLSource.from_url(player.title, loop=self.bot.loop)
     
     if song.duration < 60:  # Song is less than a minute
       await ctx.send('{} seconds long'.format(song.duration))
@@ -352,7 +352,7 @@ class Music(commands.Cog):
       ctx.voice_client.stop()
       await ctx.send(':track_next: Skipping song :track_next: please hold :track_next:')
       url = await link_utils.generate_url(song_queue.pop(0))
-      player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+      player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop)
       ctx.voice_client.play(player)
       await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
     self.skipping = False
@@ -395,7 +395,7 @@ class Music(commands.Cog):
     await self.ensure_voice(ctx)
     if not ctx.voice_client.is_playing():
       url = await link_utils.generate_url(song_queue.pop(0))
-      player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+      player = await YTDL.YTDLSource.from_url(url, loop=self.bot.loop)
       ctx.voice_client.play(player)
       message = await ctx.send(':notes: Now playing: **{}** *({} minutes and {} seconds long)*'.format(player.title, player.duration//60, player.duration%60))
       self.currentTitle = player.title

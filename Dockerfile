@@ -37,6 +37,13 @@ ENV OSU=
 # OSU APIv2 ID
 ENV OSU_ID=
 
+# --- Optional tuning ---
+# Set to 1 to enable verbose discord.py voice/player logging
+ENV AUDIO_DEBUG=0
+# Max track duration (seconds) to download before playing. Tracks longer than
+# this are streamed instead. Set to 0 to stream everything (old behaviour).
+ENV DOWNLOAD_MAX_DURATION=1800
+
 #COPY bot-code /
 #RUN chmod +x __init__.py
 

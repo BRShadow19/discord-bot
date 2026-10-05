@@ -1,6 +1,8 @@
 import discord
 import asyncio
 import logging
+import os
+import shutil
 import threading
 import time
 import yt_dlp
@@ -14,18 +16,28 @@ FRAME_SECONDS = 0.02        # discord.py pulls 20 ms of PCM per read()
 SLOW_READ_SECONDS = 1.0     # log reads that block at least this long
 STALL_WARN_SECONDS = 5.0    # warn while a read is still blocked after this long
 
-ffmpeg_options = {
+# Tracks longer than this (seconds) are streamed instead of downloaded to disk first.
+# Default 30 minutes.  Set DOWNLOAD_MAX_DURATION=0 to stream everything (old behaviour).
+DOWNLOAD_MAX_DURATION = int(os.environ.get('DOWNLOAD_MAX_DURATION', '1800'))
+DOWNLOAD_DIR = '/tmp/musicbot'
+
+# ffmpeg flags for streaming (URL input) — reconnect on dropped connections.
+# Do NOT add -reconnect_at_eof: in testing it made ffmpeg retry at the real end of every
+# track (~8 s delay plus an I/O error).
+ffmpeg_options_stream = {
     'options': '-vn',
-    # -rw_timeout (microseconds): give up on a socket that has gone silent after 10 s instead
-    # of blocking forever. With -reconnect, ffmpeg then resumes from the current byte offset.
-    # Do NOT add -reconnect_at_eof: in testing it made ffmpeg retry at the real end of every
-    # track (~8 s delay plus an I/O error).
     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -rw_timeout 10000000'
+}
+
+# ffmpeg flags for local files — no reconnect logic needed.
+ffmpeg_options_local = {
+    'options': '-vn',
+    'before_options': ''
 }
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'outtmpl': os.path.join(DOWNLOAD_DIR, '%(extractor)s-%(id)s-%(title)s.%(ext)s'),
     'restrictfilenames': True,
     'noplaylist': False,
     'nocheckcertificate': True,
@@ -39,6 +51,21 @@ ytdl_format_options = {
 }
 
 ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
+
+
+def _ensure_download_dir():
+    """Create the download directory and clean up any orphaned files from previous runs."""
+    if os.path.isdir(DOWNLOAD_DIR):
+        for name in os.listdir(DOWNLOAD_DIR):
+            path = os.path.join(DOWNLOAD_DIR, name)
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+        log.info('Cleaned orphaned files from %s', DOWNLOAD_DIR)
+    else:
+        os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+        log.info('Created download directory %s', DOWNLOAD_DIR)
 
 
 class InstrumentedFFmpegPCMAudio(discord.FFmpegPCMAudio):
@@ -131,25 +158,56 @@ class InstrumentedFFmpegPCMAudio(discord.FFmpegPCMAudio):
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
+    def __init__(self, source, *, data, volume=0.5, temp_file=None):
         super().__init__(source, volume)
 
         self.data = data
+        self.temp_file = temp_file      # local file to delete after playback
         self.is_whileplaying = False
         self.title = data.get('title')
         self.url = data.get('url')
         self.duration = data.get('duration')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
+    async def from_url(cls, url, *, loop=None):
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+
+        # Always fetch metadata first (no download) to check duration.
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
 
         if 'entries' in data:
-            # take first item from a playlist
             data = data['entries'][0]
 
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
-        source = InstrumentedFFmpegPCMAudio(filename, label=data.get('title'),
-                                            expected_duration=data.get('duration'), **ffmpeg_options)
-        return cls(source, data=data)
+        duration = data.get('duration')
+        title = data.get('title')
+
+        # Decide: download short/normal tracks, stream long/unknown-length ones.
+        if DOWNLOAD_MAX_DURATION > 0 and duration is not None and duration <= DOWNLOAD_MAX_DURATION:
+            log.info('Downloading %r (%ss, threshold %ss)', title, duration, DOWNLOAD_MAX_DURATION)
+            data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=True))
+            if 'entries' in data:
+                data = data['entries'][0]
+            filename = ytdl.prepare_filename(data)
+            opts = ffmpeg_options_local
+            temp_file = filename
+        else:
+            log.info('Streaming %r (%ss, threshold %ss)', title, duration, DOWNLOAD_MAX_DURATION)
+            filename = data['url']
+            opts = ffmpeg_options_stream
+            temp_file = None
+
+        source = InstrumentedFFmpegPCMAudio(
+            filename, label=title,
+            expected_duration=duration, **opts
+        )
+        return cls(source, data=data, temp_file=temp_file)
+
+    def cleanup(self):
+        """Clean up ffmpeg and delete the temp file if we downloaded one."""
+        super().cleanup()
+        if self.temp_file:
+            try:
+                os.remove(self.temp_file)
+                log.info('Deleted temp file: %s', self.temp_file)
+            except OSError as e:
+                log.warning('Failed to delete temp file %s: %s', self.temp_file, e)

@@ -52,6 +52,7 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#api-tokens">API Tokens</a></li>
+        <li><a href="#optional-configuration">Optional Configuration</a></li>
         <li><a href="#running-as-a-python-application">Python Application</a></li>
         <li><a href="#docker">Docker</a></li>
       </ul>
@@ -127,6 +128,14 @@ First, make a file called `token.env` within the main directory of the bot code.
   OSU_ID='******'
   ```
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Optional Configuration
+These environment variables can be added to `token.env` (or set in the `Dockerfile`) to tune the bot's behavior. They are not required.
+
+| Variable | Default | Description |
+|---|---|---|
+| `AUDIO_DEBUG` | `0` | Set to `1` to enable verbose voice-connection and audio-player logging from discord.py. Useful for diagnosing playback issues. |
+| `DOWNLOAD_MAX_DURATION` | `1800` | Maximum track duration (in seconds) that will be fully downloaded before playback. Tracks longer than this value are streamed instead. Set to `0` to stream everything (original behavior). |
 
 <div align="center">
   <img src="images/weather.png" style="width:354px">

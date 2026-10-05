@@ -23,6 +23,10 @@ discord.utils.setup_logging(level=logging.INFO)
 import log_redact
 log_redact.install()
 
+# Ensure the audio download directory exists and is clean on startup.
+import YTDLSource as YTDL
+YTDL._ensure_download_dir()
+
 # Optional voice diagnostics: set AUDIO_DEBUG=1 (environment variable or token.env) to log
 # discord.py voice state changes at DEBUG (low volume): discord.player ("Not connected,
 # waiting" / "Aborting playback") and discord.voice_state (connection changes).
