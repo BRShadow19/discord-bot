@@ -206,8 +206,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
         """Clean up ffmpeg and delete the temp file if we downloaded one."""
         super().cleanup()
         if self.temp_file:
+            path = self.temp_file
+            self.temp_file = None       # guard against double cleanup (__del__)
             try:
-                os.remove(self.temp_file)
-                log.info('Deleted temp file: %s', self.temp_file)
+                os.remove(path)
+                log.info('Deleted temp file: %s', path)
             except OSError as e:
-                log.warning('Failed to delete temp file %s: %s', self.temp_file, e)
+                log.warning('Failed to delete temp file %s: %s', path, e)
